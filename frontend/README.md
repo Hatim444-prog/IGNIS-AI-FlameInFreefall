@@ -7,7 +7,7 @@ npm ci
 npm run dev
 ```
 
-For a production build run `npm run build`, then `npm start` (Vite preview). Both development and preview bind to loopback. Copy `.env.example` to `.env.local`, or set `IGNIS_NIM_API_KEY` in the repo-root `.env` (same file `start.bat` uses for FastAPI). Vite loads both locations. The browser sends same-origin requests to `/ai`. Dev and preview proxy `/ai` to FastAPI, validate routes against the contract, map inference headers, and forward the env NVIDIA key when present. FastAPI uses the same env key when a request has no `Authorization` header. Settings selects local, hosted, or mixed inference.
+For a production build run `npm run build`, then `npm start` (Vite preview). Both development and preview bind to loopback. Copy `.env.example` to `.env.local` for `IGNIS_API_ORIGIN` only. Put **`IGNIS_NIM_API_KEY` in the repo-root `.env`** (backend; see `ai-service/.env.example`) — not in the frontend. Vite still reads the root file for the `/ai` proxy. FastAPI uses that key when requests have no `Authorization` header. Settings selects local, hosted, or mixed inference.
 
 ## Research workflows
 

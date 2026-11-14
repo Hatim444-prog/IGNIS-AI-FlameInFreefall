@@ -2052,7 +2052,6 @@ td {
 .station-art {align-self:flex-end;width:min(92%,230px);aspect-ratio:195/130;background:url('/mission-art.png') 74% 80.4% / 857.44% 723.85% no-repeat;mask-image:radial-gradient(ellipse,#000 50%,transparent 75%);margin-top:auto}
 .sidebar-earth {background:url('/mission-art.png') 0 100% / 530% auto no-repeat; inset:64px -17px 0;opacity:1}
 .sidebar-mission {display:none}
-.brand-orbit {background:url('/mission-art.png') 14.6% 4.4% / 2400% auto no-repeat;width:60px;height:58px;border:0}
 .brand-orbit svg {visibility:hidden}
 @media(min-width:1251px){
 .shell:not(.compact){grid-template-columns:clamp(248px,19vw,320px) minmax(0,1fr)}
@@ -2123,3 +2122,8 @@ td {
   .shell aside nav a, .drawer nav a { font-size: 11px; gap: 5px; padding-inline: 4px; }
   .shell aside nav a svg, .drawer nav a svg { width: 15px; flex-shrink: 0; }
 }
+
+.site-logo { display: block; width: 100%; }
+.site-logo img { display: block; margin: auto; width: auto; max-width: 100%; height: clamp(48px, 9dvh, 92px); object-fit: contain; }
+.compact aside .site-logo img { content: url('/logo/ignis-icon.png'); height: 36px; }
+@media (max-height: 570px) { .site-logo img { height: 38px; } }

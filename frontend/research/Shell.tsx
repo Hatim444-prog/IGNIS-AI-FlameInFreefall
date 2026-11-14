@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   Orbit,
-  Flame,
   LayoutDashboard,
   FlaskConical,
   ChartColumn,
@@ -106,21 +105,9 @@ function Workspace({ children }: { children: ReactNode }) {
         aria-label="IGNIS AI dashboard"
         onClick={() => setOpen(false)}
       >
-        <Flame
-          className="brand-flame"
-          size={43}
-          strokeWidth={1.7}
-          aria-hidden
-        />
-        <span className="brand-copy">
-          <strong>
-            IGNIS <em>AI</em>
-          </strong>
-          <span>Flame in Freefall</span>
-        </span>
-        <span className="brand-orbit" aria-hidden>
-          <Orbit size={25} />
-        </span>
+        <picture className="site-logo">
+          <img src="/logo/ignis-logo.png" alt="IGNIS AI · Flame in Freefall" />
+        </picture>
       </Link>
       {groups.map((g) => (
         <nav key={g.name} aria-label={g.name}>
@@ -226,7 +213,7 @@ function Workspace({ children }: { children: ReactNode }) {
             <input
               ref={search}
               aria-label="Search experiments"
-              placeholder="Search experiments…"
+              placeholder="Search experimentsâ€¦"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />

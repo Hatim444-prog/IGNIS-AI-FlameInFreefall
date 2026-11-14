@@ -106,7 +106,7 @@ export default function Settings() {
           {import.meta.env.PROD ? (
             <>
               <p className="field-help">
-                Hosted deployments use the same-origin proxy to reach the private backend service.
+                Hosted deployments use the same-origin /ai route to reach the backend service.
               </p>
               <button type="button" className="secondary" onClick={testConnection}>
                 Test connection

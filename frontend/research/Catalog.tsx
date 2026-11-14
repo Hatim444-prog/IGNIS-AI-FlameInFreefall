@@ -1,6 +1,7 @@
 "use client";
 import { Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
+import DocumentCollection from "./DocumentCollection";
 import { Header, State, RunLink, Fields, useSelection } from "./common";
 import { useExperiments, origin, type Experiment, label } from "./api";
 export { default as Overview } from "./Overview";
@@ -55,15 +56,16 @@ export function Explorer() {
       </Header>
       <section className="panel">
         <label>
-          Search experiments
+          Search runs and documents
           <input
             id="search"
             type="search"
-            placeholder="Experiment code, investigation or fuel"
+            placeholder="Experiment code, fuel or document name"
             value={filters.q || ""}
             onChange={(e) => change("q", e.target.value)}
           />
         </label>
+        <DocumentCollection search={filters.q} />
         <details className="picker">
           <summary>Filter conditions</summary>
           <div className="fields">
@@ -124,7 +126,7 @@ export function Explorer() {
         {q.data && (
           <>
             <div className="row">
-              <strong>{filtered.length} matching records</strong>
+              <strong>{filtered.length} matching experiment runs</strong>
               <button
                 onClick={() =>
                   change(
@@ -279,9 +281,9 @@ export function Investigations() {
   return (
     <>
       <Header section="Library" title="Investigations">
-        Grouped from the loaded experiment records. A complete catalog requires
-        a dedicated investigation API.
+        Browse indexed research documents and investigations with measured experiment runs.
       </Header>
+      <DocumentCollection />
       <State query={q} />
       {q.data && !groups.size && (
         <p>No investigations in the loaded records.</p>

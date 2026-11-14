@@ -1,4 +1,5 @@
 import LiveFire from "./LiveFire";
+import DocumentCollection from "./DocumentCollection";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -91,6 +92,7 @@ export default function Overview() {
         <FlameComparison />
       </section>
 
+      <DocumentCollection />
       <section className="workflow-grid" aria-label="Research tools">
         {workflows.map(({ href, title, text, Icon }) => (
           <Link className="workflow-card" to={href} key={href}>
@@ -194,7 +196,7 @@ export default function Overview() {
         </section>
 
         <section className="panel coverage-panel">
-          <div className="panel-heading"><h2><FileText size={20}/> Research sources</h2><Link to="/sources">View all <ArrowRight size={14}/></Link></div>
+          <div className="panel-heading"><h2><FileText size={20}/> Featured PDFs</h2><Link to="/sources">View all <ArrowRight size={14}/></Link></div>
           {["FLARE","FM2","SOFIE"].map(name=><a className="document-row" key={name} href={"/papers/"+name+".pdf"} target="_blank" rel="noreferrer"><span>PDF</span><div><strong>{name}</strong><p>Research document · Open PDF</p></div></a>)}
         </section>
       </div>

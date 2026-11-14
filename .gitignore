@@ -1,39 +1,64 @@
-# Python / Virtualenv
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.local
+
+# Python virtual environments and generated files
 .venv/
-*/.venv/
 venv/
-*/venv/
 ENV/
 __pycache__/
 *.py[cod]
 *$py.class
 *.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
 
-# Node / Frontend
+# Node.js dependencies, caches, and build output
 node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+.vite/
+.turbo/
+.next/
+.vercel/
 dist/
 dist-ssr/
-*.local
+coverage/
 
-# Environment variables
-.env
-!.env.example
+# Browser and end-to-end test output
+playwright-report/
+test-results/
 
-# IDE & Editor
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS files
-Thumbs.db
-[Dd]esktop.ini
-.DS_Store
-
-# Logs
+# Logs and package-manager debug files
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# Editor and operating system files
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.DS_Store
+Thumbs.db
+[Dd]esktop.ini
+
+# Generated local tooling files
+*.tsbuildinfo
+frontend/next-env.d.ts

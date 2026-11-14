@@ -30,8 +30,11 @@ export function getApiBase() {
   if (stored !== null && stored.trim() !== '') {
     return stored.replace(/\/$/, '')
   }
-  if (import.meta.env.DEV) return ''
-  return (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001').replace(/\/$/, '')
+  return (import.meta.env.VITE_IGNIS_API_URL || '').replace(/\/$/, '')
+}
+
+export function isDirectApiConfigured() {
+  return Boolean(getApiBase())
 }
 
 export function setApiBase(url) {

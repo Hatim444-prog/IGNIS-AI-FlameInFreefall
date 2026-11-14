@@ -44,6 +44,7 @@ def connect_db():
 
 
 class HybridQuestion(BaseModel):
+    document_names: list[str] = Field(default_factory=list, max_length=100)
     question: str = Field(min_length=3, max_length=1500)
     # The default scope is ZARM, which must not be represented as NASA PSI data.
     dataset_prefix: str = Field(default="ZARM-", max_length=60)
@@ -246,7 +247,7 @@ def build_hybrid_router(search_documents: Callable) -> APIRouter:
 
         # Reuse existing Stage 1 Nomic -> pgvector PDF retrieval without changing main.py.
         try:
-            papers = search_documents(request.question, request.top_k_papers)
+            papers = search_documents(request.question, request.top_k_papers, request.document_names)
         except Exception as exc:
             raise HTTPException(503, "PDF evidence retrieval unavailable") from exc
         papers = [dict(r) for r in papers]
@@ -264,6 +265,7 @@ def build_hybrid_router(search_documents: Callable) -> APIRouter:
         })
         text_context = [
             {"citation": f"[T{i}]", "source": p.get("source"),
+             "source_url": p.get("source_url"), "verification_status": p.get("verification_status"),
              "page": p.get("page"), "excerpt": str(p.get("text", ""))[:1300]}
             for i, p in enumerate(papers, 1)
         ]

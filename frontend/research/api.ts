@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import type { paths, components } from "./contract";
+import { getApiBase } from "../src/lib/inference.js";
 export type Models = components["schemas"];
 const scalar = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 export const evidence = z.record(z.string(), scalar);
@@ -67,7 +68,7 @@ async function request<T>(
     : timeout;
   let response: Response;
   try {
-    response = await fetch(path + query, {
+    response = await fetch(getApiBase() + path + query, {
       ...options,
       headers: {
         ...options.headers,
@@ -119,7 +120,7 @@ export function uploadObservation(
   return new Promise<z.infer<typeof observation>>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const abort = () => xhr.abort();
-    xhr.open("POST", path);
+    xhr.open("POST", getApiBase() + path);
     xhr.timeout = 300000;
     xhr.responseType = "json";
     xhr.setRequestHeader(
@@ -172,6 +173,19 @@ export function useRead<T>(
     retry: false,
   });
 }
+export const useDocuments = () =>
+  useRead(
+    "/ai/data/documents",
+    z.array(
+      z.object({
+        filename: z.string(),
+        file_type: z.string(),
+        passages: z.number(),
+        source_url: z.string().nullable(),
+        verification_status: z.string(),
+      }),
+    ),
+  );
 export const useExperiments = (prefix = "") =>
   useRead(
     "/ai/data/experiments",

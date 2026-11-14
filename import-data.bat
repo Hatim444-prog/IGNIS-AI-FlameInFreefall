@@ -19,7 +19,9 @@ if errorlevel 1 (
 )
 
 echo.
-echo Optional: migrate PDF embeddings if data\index.json exists:
-echo   python migrate_vectors.py
+echo Indexing research PDFs and prepared web documents...
+python import_documents.py
+if errorlevel 1 exit /b 1
+echo Research import complete.
 echo.
 pause

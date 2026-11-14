@@ -1,5 +1,6 @@
 
 from pathlib import Path
+import os
 
 from dotenv import load_dotenv
 from psycopg.rows import dict_row
@@ -8,7 +9,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from db_config import connect_db, database_display_name
 from hybrid_api import build_hybrid_router
@@ -41,8 +42,12 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://127.0.0.1:5173",
-        "http://localhost:5173",
+        origin.strip().rstrip("/")
+        for origin in os.getenv(
+            "IGNIS_CORS_ORIGINS",
+            "http://127.0.0.1:5173,http://localhost:5173",
+        ).split(",")
+        if origin.strip()
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -69,6 +74,7 @@ EMBED_MODEL = "nomic-embed-text"
 
 class Question(BaseModel):
     question: str
+    document_names: list[str] = Field(default_factory=list, max_length=100)
 
 
 # ==========================================
@@ -83,7 +89,7 @@ def get_connection():
 # RAG DOCUMENT SEARCH
 # ==========================================
 
-def search_documents(question, top_k=4):
+def search_documents(question, top_k=4, document_names=None):
 
     # Step 1: Generate query embedding
     try:
@@ -100,6 +106,7 @@ def search_documents(question, top_k=4):
                 """
                 SELECT
                     s.filename AS source,
+                    s.source_url, s.verification_status,
                     d.page_number AS page,
                     d.content AS text,
                     1 - (d.embedding <=> %s) AS score
@@ -110,6 +117,7 @@ def search_documents(question, top_k=4):
                     ON s.id = d.source_id
 
                 WHERE d.embedding IS NOT NULL
+                  AND (%s::text[] IS NULL OR s.filename = ANY(%s::text[]))
 
                 ORDER BY d.embedding <=> %s
 
@@ -117,6 +125,8 @@ def search_documents(question, top_k=4):
                 """,
                 (
                     query_vector,
+                    document_names or None,
+                    document_names or None,
                     query_vector,
                     top_k
                 )
@@ -130,6 +140,25 @@ def search_documents(question, top_k=4):
 # ==========================================
 # HEALTH ENDPOINT
 # ==========================================
+
+class IndexedDocument(BaseModel):
+    filename: str
+    file_type: str
+    source_url: str | None
+    verification_status: str
+    passages: int
+
+
+@app.get("/ai/data/documents", response_model=list[IndexedDocument])
+def indexed_documents():
+    with get_connection() as conn:
+        return conn.execute("""
+            SELECT s.filename, s.file_type, s.source_url, s.verification_status,
+                   COUNT(*) AS passages
+            FROM sources s JOIN document_chunks d ON d.source_id=s.id
+            WHERE d.embedding IS NOT NULL
+            GROUP BY s.id ORDER BY lower(s.filename), s.id
+        """).fetchall()
 
 @app.get("/ai/health")
 def health():
@@ -170,7 +199,7 @@ def ask(request: Question):
     # Retrieve relevant NASA evidence
     results = search_documents(
         request.question,
-        top_k=4
+        top_k=4, document_names=request.document_names
     )
 
     if not results:
@@ -182,9 +211,9 @@ def ask(request: Question):
     # Build scientific context
     context = "\n\n".join(
         (
-            f"[{i}] Source: {r['source']}, "
-            f"page {r['page']}\n"
-            f"{r['text']}"
+            f"[{i}] Source: {r['source']}"
+            + (f", page {r['page']}" if r['page'] is not None else "") + "\n"
+            + r["text"]
         )
         for i, r in enumerate(results, start=1)
     )
@@ -237,7 +266,10 @@ def ask(request: Question):
         "sources": [
             {
                 "reference": i,
+                "excerpt": r["text"],
                 "file": r["source"],
+                "source_url": r["source_url"],
+                "verification_status": r["verification_status"],
                 "page": r["page"],
                 "similarity": round(float(r["score"]), 4)
             }

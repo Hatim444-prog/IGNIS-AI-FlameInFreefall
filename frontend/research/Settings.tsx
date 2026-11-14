@@ -4,7 +4,8 @@ import { usePreference } from "./preferences";
 import { Link } from "react-router-dom";
 import { z } from "zod";
 import { Header, State } from "./common";
-import { useHealth, useDatabase, request } from "./api";
+import { useHealth, useDatabase, request, useDocuments } from "./api";
+import { useState } from "react";
 export function Settings() {
   const [provider, setProvider] = usePreference("ignis_infer_mode", "ollama");
   const h = useHealth(),
@@ -86,18 +87,46 @@ export function Settings() {
   );
 }
 export function Sources() {
+  const [filter, setFilter] = useState("");
+  const documents = useDocuments();
+  const matching = documents.data?.filter((d) =>
+    d.filename.toLowerCase().includes(filter.trim().toLowerCase()),
+  );
   return (
     <>
       <Header section="Library" title="Evidence sources">
         Follow citations from research results to their original records.
       </Header>
       <section className="panel">
-        <h2>Source access</h2>
-        <p>
-          The installed API provides citations with answers and measurements. A
-          searchable inventory of all files and secure PDF page links require
-          additional backend endpoints.
-        </p>
+        <h2>Indexed research documents</h2>
+        <label>
+          Find a document
+          <input
+            type="search"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Search by filename"
+          />
+        </label>
+        <State query={documents} />
+        {matching?.map((d) => (
+          <article className="sample" key={d.filename}>
+            <h3>{d.filename}</h3>
+            <Link to={"/assistant?document=" + encodeURIComponent(d.filename)}>
+              Ask about this document →
+            </Link>
+            <p>
+              {d.file_type.toUpperCase()} · {d.passages} indexed passages ·{" "}
+              {d.verification_status}
+            </p>
+            {d.source_url && /^https?:\/\//i.test(d.source_url) && (
+              <a href={d.source_url} target="_blank" rel="noreferrer">
+                Original source ↗
+              </a>
+            )}
+          </article>
+        ))}
+        {matching?.length === 0 && <p>No matching indexed documents.</p>}
         <div className="actions">
           <Link to="/assistant">Inspect answer citations →</Link>
           <Link to="/analytics">Inspect measurement sources →</Link>

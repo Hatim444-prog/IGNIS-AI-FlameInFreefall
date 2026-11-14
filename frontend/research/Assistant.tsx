@@ -1,9 +1,17 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
+import { useSearchParams } from "react-router-dom";
 import type { z } from "zod";
 import { Header, Picker, EvidenceCards, State, useSelection } from "./common";
-import { answer, post, useVariables, download, label } from "./api";
+import {
+  answer,
+  post,
+  useVariables,
+  useDocuments,
+  download,
+  label,
+} from "./api";
 const modes = {
   Paper: "Research document passages",
   Hybrid: "Passages and measured variables",
@@ -42,9 +50,20 @@ function markdown(t: Turn) {
   ].join("\n\n");
 }
 export default function Assistant() {
+  const documents = useDocuments();
+  const [params, setParams] = useSearchParams();
+  const documentNames = [...new Set(params.getAll("document").filter(Boolean))];
+  function scope(names: string[]) {
+    const next = new URLSearchParams(params);
+    next.delete("document");
+    names.forEach((name) => next.append("document", name));
+    setParams(next, { replace: true });
+  }
   const { codes } = useSelection(),
     vars = useVariables();
-  const [mode, choose] = useState<Mode>("Hybrid"),
+  const [mode, choose] = useState<Mode>(
+      documentNames.length ? "Paper" : "Hybrid",
+    ),
     [question, edit] = useState(""),
     [variable, select] = useState(""),
     [turns, setTurns] = useState<Turn[]>([]),
@@ -65,12 +84,18 @@ export default function Assistant() {
       const signal = controller.signal;
       const reply =
         mode === "Paper"
-          ? await post("/ai/ask", { question: text }, answer, signal)
+          ? await post(
+              "/ai/ask",
+              { question: text, document_names: documentNames },
+              answer,
+              signal,
+            )
           : mode === "Hybrid"
             ? await post(
                 "/ai/ask-hybrid",
                 {
                   question: text,
+                  document_names: documentNames,
                   experiment_codes: codes,
                   variable_name: variable || null,
                   dataset_prefix: "",
@@ -84,6 +109,7 @@ export default function Assistant() {
                 "/ai/ask-multimodal",
                 {
                   question: text,
+                  document_names: documentNames,
                   experiment_codes: codes,
                   top_k_visual: 3,
                   top_k_papers: 4,
@@ -125,6 +151,36 @@ export default function Assistant() {
             </button>
           ))}
         </div>
+        <details className="picker">
+          <summary>
+            Document search ·{" "}
+            {documentNames.length
+              ? documentNames.join(", ")
+              : "All indexed documents"}
+          </summary>
+          <State query={documents} />
+          <div className="checks">
+            {documents.data?.map((d) => (
+              <label key={d.filename}>
+                <input
+                  type="checkbox"
+                  checked={documentNames.includes(d.filename)}
+                  onChange={(e) =>
+                    scope(
+                      e.target.checked
+                        ? [...documentNames, d.filename]
+                        : documentNames.filter((n) => n !== d.filename),
+                    )
+                  }
+                />
+                {d.filename}
+              </label>
+            ))}
+          </div>
+          {documentNames.length > 0 && (
+            <button onClick={() => scope([])}>Search all documents</button>
+          )}
+        </details>
         {mode !== "Paper" && (
           <>
             <Picker />

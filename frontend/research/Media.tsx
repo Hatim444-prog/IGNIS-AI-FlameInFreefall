@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import type { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { Header, State, EvidenceCards } from "./common";
+import { isDirectApiConfigured } from "../src/lib/inference.js";
 import {
   request,
   observation,
@@ -43,6 +44,10 @@ export function Media() {
       return fail("Choose a JPEG, PNG or MP4 file.");
     if (!f.size || f.size > (video ? 30 : 10) * 1024 * 1024)
       return fail("File is empty or exceeds the size limit.");
+    if (!isDirectApiConfigured() && f.size > 4 * 1024 * 1024)
+      return fail(
+        "Uploads through the Vercel proxy must be under 4 MiB. Compress or trim the file and try again.",
+      );
     pick(f);
     setPreview(URL.createObjectURL(f));
   }

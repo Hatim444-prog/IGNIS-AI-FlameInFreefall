@@ -11,6 +11,11 @@ async function handleResponse(res) {
   try {
     data = text ? JSON.parse(text) : null
   } catch {
+    if (/^\s*<!doctype html\b/i.test(text)) {
+      throw new Error(
+        'The API route returned the frontend page. Check the deployed Vercel service routing.',
+      )
+    }
     data = text
   }
   if (!res.ok) {

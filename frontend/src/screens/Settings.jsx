@@ -103,27 +103,40 @@ export default function Settings() {
       {showServer ? (
         <section className="panel">
           <h2 className="section-heading">Server URL</h2>
-          <p className="field-help">
-            Leave empty during local development — the app will forward requests automatically.
-          </p>
-          <div className="row">
-            <input
-              type="text"
-              aria-label="Server URL"
-              placeholder="(empty = default local setup)"
-              value={apiBase}
-              onChange={(e) => setApiBaseState(e.target.value)}
-            />
-            <button type="button" className="secondary" onClick={testConnection}>
-              Test connection
-            </button>
-          </div>
-          <p className="hint">
-            API documentation:{' '}
-            <a href="http://127.0.0.1:8001/docs" target="_blank" rel="noopener noreferrer">
-              OpenAPI reference
-            </a>
-          </p>
+          {import.meta.env.PROD ? (
+            <>
+              <p className="field-help">
+                Hosted deployments use the same-origin /ai route to reach the backend service.
+              </p>
+              <button type="button" className="secondary" onClick={testConnection}>
+                Test connection
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="field-help">
+                Leave empty to use the local development proxy, or enter a direct API URL.
+              </p>
+              <div className="row">
+                <input
+                  type="text"
+                  aria-label="Server URL"
+                  placeholder="(empty = use the default API proxy)"
+                  value={apiBase}
+                  onChange={(e) => setApiBaseState(e.target.value)}
+                />
+                <button type="button" className="secondary" onClick={testConnection}>
+                  Test connection
+                </button>
+              </div>
+              <p className="hint">
+                API documentation:{' '}
+                <a href="http://127.0.0.1:8001/docs" target="_blank" rel="noopener noreferrer">
+                  OpenAPI reference
+                </a>
+              </p>
+            </>
+          )}
         </section>
       ) : null}
     </>

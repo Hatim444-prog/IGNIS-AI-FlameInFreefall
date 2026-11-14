@@ -1,92 +1,9 @@
 "use client";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import { Header, State, RunLink, Fields, useSelection } from "./common";
-import {
-  useExperiments,
-  useVariables,
-  useDatabase,
-  origin,
-  type Experiment,
-  label,
-} from "./api";
-export function Overview() {
-  const q = useExperiments(),
-    v = useVariables(),
-    d = useDatabase();
-  return (
-    <>
-      <section className="hero">
-        <Header section="Combustion research" title="Research command center">
-          Explore microgravity experiments, compare measured conditions and
-          trace mission research to its evidence.
-        </Header>
-        <div className="actions">
-          <Link className="action primary" to="/experiments">
-            Explore experiments →
-          </Link>
-          <Link className="action" to="/assistant">
-            Ask IGNIS AI
-          </Link>
-          <Link className="action" to="/mission-advisor">
-            Analyze mission
-          </Link>
-        </div>
-      </section>
-      <div className="metrics">
-        {[
-          [q, "Experiment records loaded", q.data?.experiments.length],
-          [
-            v,
-            "Measured variables",
-            v.data &&
-              new Set(v.data.variables.map((x) => x.variable_name)).size,
-          ],
-          [d, "Indexed investigations", d.data?.investigations_in_db],
-        ].map(([query, title, value]) => (
-          <div className="metric" key={String(title)}>
-            <span>{String(title)}</span>
-            <strong>{value == null ? "—" : String(value)}</strong>
-            <State query={query as typeof q} />
-          </div>
-        ))}
-      </div>
-      <div className="split">
-        <section className="panel">
-          <h2>Experiment collection</h2>
-          {q.data?.experiments.slice(0, 5).map((e) => (
-            <div className="sample" key={e.experiment_code}>
-              <RunLink code={e.experiment_code} />
-              <p>
-                {e.investigation_title} · {origin(e.experiment_code)}
-              </p>
-            </div>
-          ))}
-          {q.data && !q.data.experiments.length && <p>No records returned.</p>}
-          <Link to="/investigations">Browse investigations →</Link>
-        </section>
-        <section className="panel">
-          <h2>Measurement coverage</h2>
-          {v.data?.variables.map((r) => (
-            <div className="sample" key={r.variable_name + r.unit}>
-              <b>
-                {label(r.variable_name)} ({r.unit ?? "unit unknown"})
-              </b>
-              <p>
-                {r.observation_count} measurements across {r.experiment_count}{" "}
-                experiments
-              </p>
-            </div>
-          ))}
-          <p className="muted">
-            Coverage reflects the indexed collection. NASA attribution requires
-            supporting provenance. ZARM experiments are external research.
-          </p>
-        </section>
-      </div>
-    </>
-  );
-}
+import { useExperiments, origin, type Experiment, label } from "./api";
+export { default as Overview } from "./Overview";
 const ranges = {
   oxygen_percent: "Oxygen (%)",
   pressure_pa: "Pressure (Pa)",
@@ -95,20 +12,13 @@ const ranges = {
 export function Explorer() {
   const q = useExperiments();
   const { codes, set } = useSelection();
-  const [filters, update] = useState(() =>
-    Object.fromEntries(
-      new URLSearchParams(
-        typeof window === "undefined" ? "" : window.location.search,
-      ),
-    ),
-  );
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filters = Object.fromEntries(searchParams);
   const [page, setPage] = useState(0);
   function change(k: string, value: string) {
     const f = { ...filters, [k]: value };
-    update(f);
+    setSearchParams(Object.entries(f).filter(([, v]) => v));
     setPage(0);
-    const params = new URLSearchParams(Object.entries(f).filter(([, v]) => v));
-    window.history.replaceState(null, "", "/experiments?" + params);
   }
   const rows = q.data?.experiments || [];
   const filtered = rows
@@ -203,9 +113,8 @@ export function Explorer() {
           </div>
           <button
             onClick={() => {
-              update({});
+              setSearchParams({});
               setPage(0);
-              history.replaceState(null, "", "/experiments");
             }}
           >
             Reset filters

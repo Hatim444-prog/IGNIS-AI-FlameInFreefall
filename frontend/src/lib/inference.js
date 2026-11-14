@@ -26,11 +26,14 @@ export function setNimKey(key) {
 }
 
 export function getApiBase() {
+  // Hosted builds must stay same-origin: the backend is internal to Vercel.
+  if (import.meta.env.PROD) return ''
+
   const stored = localStorage.getItem(LS_API)
   if (stored !== null && stored.trim() !== '') {
     return stored.replace(/\/$/, '')
   }
-  return (import.meta.env.VITE_IGNIS_API_URL || '').replace(/\/$/, '')
+  return ''
 }
 
 export function isDirectApiConfigured() {

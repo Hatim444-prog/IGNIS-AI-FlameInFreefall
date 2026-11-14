@@ -84,13 +84,28 @@ async function request<T>(
       );
     throw new Error("Cannot reach IGNIS. Check the API connection and retry.");
   }
+  const responseText = await response.text();
+  let responseBody: unknown;
+  try {
+    responseBody = responseText ? JSON.parse(responseText) : null;
+  } catch {
+    if (/^\s*<!doctype html\b/i.test(responseText))
+      throw new Error(
+        "The API route returned the frontend page. Check the deployed Vercel service routing.",
+      );
+    throw new Error("The backend returned an invalid response.");
+  }
   if (!response.ok) {
-    const body = await response.json().catch(() => null);
     const detail =
-      typeof body?.detail === "string" ? body.detail : response.statusText;
+      typeof responseBody === "object" &&
+      responseBody !== null &&
+      "detail" in responseBody &&
+      typeof responseBody.detail === "string"
+        ? responseBody.detail
+        : response.statusText;
     throw new Error("HTTP " + response.status + " · " + detail);
   }
-  const parsed = schema.safeParse(await response.json());
+  const parsed = schema.safeParse(responseBody);
   if (!parsed.success)
     throw new Error(
       "The backend returned an incomplete or unexpected response.",

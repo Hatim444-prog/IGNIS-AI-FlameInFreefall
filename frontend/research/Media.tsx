@@ -46,7 +46,7 @@ export function Media() {
       return fail("File is empty or exceeds the size limit.");
     if (!isDirectApiConfigured() && f.size > 4 * 1024 * 1024)
       return fail(
-        "Uploads through Vercel must be under 4 MB. Set VITE_IGNIS_API_URL to your public HTTPS API origin for larger files.",
+        "Uploads through the Vercel proxy must be under 4 MiB. Compress or trim the file and try again.",
       );
     pick(f);
     setPreview(URL.createObjectURL(f));

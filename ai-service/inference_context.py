@@ -32,8 +32,16 @@ def _parse_backend(raw: str | None, default: Backend) -> Backend:
     return default
 
 
+def _nim_key_from_env() -> str | None:
+    for name in ("IGNIS_NIM_API_KEY", "NVIDIA_API_KEY", "NIM_API_KEY"):
+        raw = os.getenv(name)
+        if raw and raw.strip():
+            return raw.strip()
+    return None
+
+
 def config_from_env() -> InferenceConfig:
-    """Server defaults only. NIM API keys are supplied per request (not from .env)."""
+    """Server defaults; optional NIM key from .env (request headers may override)."""
     default = _parse_backend(os.getenv("IGNIS_INFERENCE_BACKEND"), "ollama")
     chat = _parse_backend(os.getenv("IGNIS_CHAT_BACKEND"), default)
     embed = _parse_backend(os.getenv("IGNIS_EMBED_BACKEND"), "ollama")
@@ -41,7 +49,7 @@ def config_from_env() -> InferenceConfig:
     return InferenceConfig(
         chat_backend=chat,
         embed_backend=embed,
-        nim_api_key=None,
+        nim_api_key=_nim_key_from_env(),
         nim_base_url=base,
     )
 
@@ -83,6 +91,8 @@ def config_from_request(request: Request) -> InferenceConfig:
     alt = request.headers.get("x-nvidia-api-key")
     if alt:
         nim_key = alt.strip() or nim_key
+    if not nim_key:
+        nim_key = base.nim_api_key
 
     return InferenceConfig(
         chat_backend=chat or base.chat_backend,

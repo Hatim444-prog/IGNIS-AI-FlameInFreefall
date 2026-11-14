@@ -1,0 +1,3 @@
+{
+  "/ai/[...segments]/route": "app/ai/[...segments]/route.js"
+}

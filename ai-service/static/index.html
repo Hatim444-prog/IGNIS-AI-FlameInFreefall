@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IGNIS AI — smoke test</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0f1419;
+      --card: #1a2332;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #8b9cb3;
+      --ok: #3dd68c;
+      --fail: #f07178;
+      --accent: #ff8c42;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f4f6f9;
+        --card: #fff;
+        --border: #d8dee8;
+        --text: #1a2332;
+        --muted: #5c6b7a;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+    }
+    header h1 { margin: 0; font-size: 1.25rem; font-weight: 600; }
+    header p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.9rem; }
+    main { max-width: 52rem; margin: 0 auto; padding: 1.25rem 1.5rem 2rem; }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    label { font-size: 0.85rem; color: var(--muted); }
+    input[type="text"] {
+      flex: 1;
+      min-width: 12rem;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--text);
+    }
+    button {
+      padding: 0.5rem 0.9rem;
+      border: none;
+      border-radius: 6px;
+      background: var(--accent);
+      color: #1a0f08;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { filter: brightness(1.05); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    #summary {
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    .tests { display: flex; flex-direction: column; gap: 0.75rem; }
+    .test {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      overflow: hidden;
+    }
+    .test-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+    }
+    .badge.pending { background: var(--border); color: var(--muted); }
+    .badge.ok { background: color-mix(in srgb, var(--ok) 25%, transparent); color: var(--ok); }
+    .badge.fail { background: color-mix(in srgb, var(--fail) 25%, transparent); color: var(--fail); }
+    .test pre {
+      margin: 0;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.78rem;
+      overflow-x: auto;
+      max-height: 14rem;
+      color: var(--muted);
+    }
+    footer {
+      margin-top: 1.5rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    a { color: var(--accent); }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+    }
+    .panel h2 { margin: 0 0 0.5rem; font-size: 1rem; }
+    .hint { margin: 0 0 0.65rem; font-size: 0.82rem; color: var(--muted); }
+    select {
+      flex: 1;
+      min-width: 14rem;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--text);
+    }
+    input[type="password"] {
+      flex: 1;
+      min-width: 12rem;
+      padding: 0.5rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--text);
+    }
+    .banner {
+      padding: 0.65rem 0.85rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.88rem;
+      border: 1px solid var(--border);
+      display: none;
+    }
+    .banner.show { display: block; }
+    .banner.ok {
+      border-color: color-mix(in srgb, var(--ok) 50%, var(--border));
+      background: color-mix(in srgb, var(--ok) 12%, var(--card));
+    }
+    .banner.fail {
+      border-color: color-mix(in srgb, var(--fail) 50%, var(--border));
+      background: color-mix(in srgb, var(--fail) 12%, var(--card));
+    }
+    .banner.info {
+      border-color: var(--border);
+      background: var(--card);
+      color: var(--muted);
+    }
+    .meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: 0.35rem 0 0;
+    }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+    .chip {
+      font-size: 0.72rem;
+      padding: 0.2rem 0.45rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .chip.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, var(--border)); }
+    .chip.fail { color: var(--fail); }
+    .chip.warn { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>IGNIS AI — API smoke test</h1>
+    <p>Checks Neon data and mission ranking. Choose Ollama on your PC or NVIDIA NIM in the cloud.</p>
+  </header>
+  <main>
+    <div id="confirmBanner" class="banner info" role="status" aria-live="polite"></div>
+
+    <section class="panel" aria-labelledby="api-heading">
+      <h2 id="api-heading">IGNIS API</h2>
+      <p class="hint">Save the base URL, test reachability, then run the smoke suite below.</p>
+      <div class="row">
+        <label for="apiBase">API base</label>
+        <input id="apiBase" type="text" aria-label="API base URL" />
+        <button type="button" class="secondary" id="testApi">Test connection</button>
+        <button type="button" id="saveApi">Save</button>
+      </div>
+      <p class="meta" id="apiMeta">—</p>
+      <div class="chip-row" id="apiChips"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="inference-heading">
+      <h2 id="inference-heading">Inference</h2>
+      <p class="hint">
+        <strong>Per user:</strong> each teammate pastes their own NVIDIA key here — never in the
+        server <code>.env</code>. Saved in <strong>this browser only</strong> after a successful test.
+        Recommended: NIM chat + local Ollama for <code>nomic-embed-text</code>.
+      </p>
+      <div class="row">
+        <label for="inferMode">Mode</label>
+        <select id="inferMode" aria-label="Inference mode">
+          <option value="ollama">Local Ollama (all models)</option>
+          <option value="nim-mixed" selected>NVIDIA NIM chat + local Ollama embeddings</option>
+          <option value="nim">NVIDIA NIM (all)</option>
+        </select>
+      </div>
+      <div class="row" id="nimKeyRow">
+        <label for="nimKey">NVIDIA API key</label>
+        <input id="nimKey" type="password" autocomplete="off"
+          placeholder="nvapi-… from build.nvidia.com" aria-label="NVIDIA API key" />
+        <button type="button" class="secondary" id="toggleKey" title="Show key">Show</button>
+      </div>
+      <div class="row">
+        <button type="button" id="testNim">Test NIM key</button>
+        <button type="button" class="secondary" id="testOllama">Test Ollama</button>
+        <button type="button" id="saveInference">Save settings</button>
+        <button type="button" class="secondary" id="clearKey">Clear saved key</button>
+      </div>
+      <p class="meta" id="inferenceMeta">—</p>
+      <p class="hint" id="modelMap">—</p>
+      <div class="chip-row" id="inferChips"></div>
+    </section>
+
+    <div class="row">
+      <button type="button" id="runAll">Run core tests</button>
+      <button type="button" class="secondary" id="runLlm">+ LLM ask (slow)</button>
+    </div>
+    <div id="summary">Ready. Start the API: <code>uvicorn main:app --reload --port 8001</code></div>
+    <div class="tests" id="tests"></div>
+    <footer>
+      OpenAPI: <a href="/docs" target="_blank" rel="noopener">/docs</a>
+    </footer>
+  </main>
+  <script>
+    const defaultBase = window.location.origin.includes("8001")
+      ? window.location.origin
+      : "http://127.0.0.1:8001";
+  const apiInput = document.getElementById("apiBase");
+
+  const inferMode = document.getElementById("inferMode");
+  const nimKey = document.getElementById("nimKey");
+  const modelMapEl = document.getElementById("modelMap");
+  const confirmBanner = document.getElementById("confirmBanner");
+  const apiMeta = document.getElementById("apiMeta");
+  const inferenceMeta = document.getElementById("inferenceMeta");
+  const apiChips = document.getElementById("apiChips");
+  const inferChips = document.getElementById("inferChips");
+
+  const LS_MODE = "ignis_infer_mode";
+  const LS_KEY = "ignis_nim_api_key";
+  const LS_API = "ignis_api_base";
+  const LS_SAVED = "ignis_settings_saved_at";
+  const LS_NIM_OK = "ignis_nim_verified_at";
+  const LS_API_OK = "ignis_api_verified_at";
+
+  let savedSnapshot = { api: "", mode: "", key: "" };
+
+  function loadFromStorage() {
+    apiInput.value = localStorage.getItem(LS_API) || defaultBase;
+    inferMode.value = localStorage.getItem(LS_MODE) || "nim-mixed";
+    nimKey.value = localStorage.getItem(LS_KEY) || "";
+    savedSnapshot = {
+      api: apiInput.value.trim(),
+      mode: inferMode.value,
+      key: nimKey.value,
+    };
+    renderMeta();
+    renderChips();
+  }
+  loadFromStorage();
+
+  function backendsForMode(mode) {
+    if (mode === "ollama") return { chat: "ollama", embed: "ollama" };
+    if (mode === "nim") return { chat: "nim", embed: "nim" };
+    return { chat: "nim", embed: "ollama" };
+  }
+
+  function maskKey(key) {
+    if (!key) return "none";
+    if (key.length < 12) return "••••";
+    return key.slice(0, 6) + "…" + key.slice(-4);
+  }
+
+  function formatWhen(iso) {
+    if (!iso) return "never";
+    try {
+      return new Date(iso).toLocaleString();
+    } catch {
+      return iso;
+    }
+  }
+
+  function showBanner(kind, message) {
+    confirmBanner.className = "banner show " + kind;
+    confirmBanner.textContent = message;
+  }
+
+  function renderMeta() {
+    const dirty =
+      apiInput.value.trim() !== savedSnapshot.api ||
+      inferMode.value !== savedSnapshot.mode ||
+      nimKey.value !== savedSnapshot.key;
+    apiMeta.textContent =
+      "Saved API: " + (savedSnapshot.api || "—") +
+      (dirty ? " · unsaved changes" : "") +
+      " · last saved " + formatWhen(localStorage.getItem(LS_SAVED));
+    inferenceMeta.textContent =
+      "Saved NIM key: " + maskKey(savedSnapshot.key) +
+      " · key verified " + formatWhen(localStorage.getItem(LS_NIM_OK));
+  }
+
+  function setChip(container, id, label, state) {
+    let el = container.querySelector('[data-chip="' + id + '"]');
+    if (!el) {
+      el = document.createElement("span");
+      el.className = "chip";
+      el.dataset.chip = id;
+      container.appendChild(el);
+    }
+    el.textContent = label;
+    el.className = "chip " + (state || "");
+  }
+
+  function renderChips() {
+    setChip(
+      apiChips,
+      "api",
+      "API: " + (localStorage.getItem(LS_API_OK) ? "verified" : "not tested"),
+      localStorage.getItem(LS_API_OK) ? "ok" : "warn"
+    );
+    const needNim = inferMode.value !== "ollama";
+    setChip(
+      inferChips,
+      "nim",
+      "NIM key: " + (localStorage.getItem(LS_NIM_OK) ? "verified" : needNim ? "required" : "off"),
+      localStorage.getItem(LS_NIM_OK) ? "ok" : needNim ? "warn" : ""
+    );
+    const needOllama = inferMode.value !== "nim";
+    setChip(
+      inferChips,
+      "ollama",
+      "Ollama: " + (needOllama ? "needed for " + (inferMode.value === "nim-mixed" ? "embeddings" : "all") : "off"),
+      needOllama ? "warn" : ""
+    );
+  }
+
+  function inferenceHeaders() {
+    const { chat, embed } = backendsForMode(inferMode.value);
+    const headers = {
+      "X-IGNIS-Chat-Backend": chat,
+      "X-IGNIS-Embed-Backend": embed,
+    };
+    const key = nimKey.value.trim();
+    if ((chat === "nim" || embed === "nim") && key) {
+      headers.Authorization = "Bearer " + key;
+    }
+    return headers;
+  }
+
+  function commitSettings(opts) {
+    const now = new Date().toISOString();
+    localStorage.setItem(LS_API, apiInput.value.trim());
+    localStorage.setItem(LS_MODE, inferMode.value);
+    localStorage.setItem(LS_KEY, nimKey.value);
+    localStorage.setItem(LS_SAVED, now);
+    if (opts?.apiOk) localStorage.setItem(LS_API_OK, now);
+    if (opts?.nimOk) localStorage.setItem(LS_NIM_OK, now);
+    savedSnapshot = {
+      api: apiInput.value.trim(),
+      mode: inferMode.value,
+      key: nimKey.value,
+    };
+    renderMeta();
+    renderChips();
+  }
+
+  const testsEl = document.getElementById("tests");
+  const summaryEl = document.getElementById("summary");
+
+  const coreTests = [
+    {
+      id: "health",
+      name: "GET /ai/health",
+      run: (base) => fetchJson(base, "/ai/health"),
+      pass: (d) => d.status === "ok",
+    },
+    {
+      id: "mission-health",
+      name: "GET /ai/mission/health",
+      run: (base) => fetchJson(base, "/ai/mission/health"),
+      pass: (d) => d.status === "ok",
+    },
+    {
+      id: "variables",
+      name: "GET /ai/data/variables",
+      run: (base) => fetchJson(base, "/ai/data/variables?dataset_prefix=ZARM-"),
+      pass: (d) => Array.isArray(d.variables) && d.variables.length > 0,
+    },
+    {
+      id: "experiments",
+      name: "GET /ai/data/experiments",
+      run: (base) => fetchJson(base, "/ai/data/experiments?dataset_prefix=ZARM-&limit=5"),
+      pass: (d) => Array.isArray(d.experiments) && d.experiments.length > 0,
+    },
+    {
+      id: "mission",
+      name: "POST /ai/mission/analyze",
+      run: (base) =>
+        fetchJson(base, "/ai/mission/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            environment: "spacecraft",
+            research_focus: "suppression",
+            oxygen_percent: 21,
+            pressure_psi: 14.7,
+            max_results: 5,
+            include_external_research: true,
+          }),
+        }),
+      pass: (d) => d.llm_generated === false && Array.isArray(d.ranked_nasa_investigations),
+    },
+  ];
+
+  const llmTest = {
+    id: "hybrid",
+    name: "POST /ai/ask-hybrid (LLM)",
+    run: (base) =>
+      fetchJson(base, "/ai/ask-hybrid", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: "What variables exist for ZARM flame spread experiments?",
+          dataset_prefix: "ZARM-",
+          max_experiments: 4,
+          top_k_papers: 2,
+        }),
+      }),
+    pass: (d) => typeof d.answer === "string" && d.answer.length > 0,
+  };
+
+  function testCard(def) {
+    const el = document.createElement("article");
+    el.className = "test";
+    el.dataset.id = def.id;
+    el.innerHTML = `
+      <div class="test-head">
+        <span>${def.name}</span>
+        <span class="badge pending">pending</span>
+      </div>
+      <pre>—</pre>`;
+    testsEl.appendChild(el);
+    return el;
+  }
+
+  function setResult(card, ok, detail) {
+    const badge = card.querySelector(".badge");
+    badge.textContent = ok ? "pass" : "fail";
+    badge.className = "badge " + (ok ? "ok" : "fail");
+    card.querySelector("pre").textContent =
+      typeof detail === "string" ? detail : JSON.stringify(detail, null, 2);
+  }
+
+  async function fetchJson(base, path, init = {}, useInference = true) {
+    const url = base.replace(/\/$/, "") + path;
+    const headers = {
+      ...(useInference ? inferenceHeaders() : {}),
+      ...(init.headers || {}),
+    };
+    const res = await fetch(url, { ...init, headers });
+    const text = await res.text();
+    let body;
+    try {
+      body = text ? JSON.parse(text) : null;
+    } catch {
+      body = { raw: text };
+    }
+    if (!res.ok) {
+      const err = new Error(res.status + " " + res.statusText);
+      err.body = body?.detail ?? body;
+      throw err;
+    }
+    return body;
+  }
+
+  async function testApiConnection() {
+    const base = apiInput.value.trim();
+    if (!base) {
+      showBanner("fail", "Enter an API base URL first.");
+      return;
+    }
+    showBanner("info", "Testing IGNIS API…");
+    try {
+      const data = await fetchJson(base, "/ai/health", {}, false);
+      const db = data.database || "unknown";
+      commitSettings({ apiOk: true });
+      showBanner(
+        "ok",
+        "API reachable. Database: " + db + ". Settings saved."
+      );
+      refreshModelMap();
+    } catch (e) {
+      showBanner("fail", "API test failed: " + JSON.stringify(e.body || e.message));
+    }
+  }
+
+  async function testNimKey() {
+    const key = nimKey.value.trim();
+    if (!key) {
+      showBanner("fail", "Paste your NVIDIA API key before testing.");
+      return;
+    }
+    const base = apiInput.value.trim() || defaultBase;
+    showBanner("info", "Calling NVIDIA NIM through the IGNIS API…");
+    try {
+      const data = await fetchJson(
+        base,
+        "/ai/inference/test?scope=nim",
+        {
+          method: "POST",
+          headers: {
+            "X-IGNIS-Chat-Backend": "nim",
+            "X-IGNIS-Embed-Backend": backendsForMode(inferMode.value).embed,
+            "X-NVIDIA-Api-Key": key,
+          },
+        }
+      );
+      if (!data.ok || data.checks?.nim?.ok === false) {
+        const msg = data.checks?.nim?.message || "NIM check failed.";
+        showBanner("fail", msg);
+        return;
+      }
+      const msg = data.checks?.nim?.message || "NIM key accepted.";
+      commitSettings({ nimOk: true });
+      showBanner("ok", msg + " Key saved after successful verification.");
+    } catch (e) {
+      if (String(e.message).includes("404")) {
+        showBanner(
+          "fail",
+          "404 on /ai/inference/test — restart the API from the latest code: "
+            + "uvicorn main:app --reload --port 8001"
+        );
+        return;
+      }
+      const detail = e.body?.checks?.nim || e.body;
+      showBanner("fail", "NIM test failed: " + JSON.stringify(detail || e.message));
+    }
+  }
+
+  async function testOllamaLocal() {
+    const base = apiInput.value.trim() || defaultBase;
+    showBanner("info", "Checking local Ollama via IGNIS…");
+    try {
+      const data = await fetchJson(
+        base,
+        "/ai/inference/test?scope=ollama",
+        { method: "POST" }
+      );
+      const msg = data.checks?.ollama?.message || "Ollama OK.";
+      showBanner("ok", msg);
+    } catch (e) {
+      showBanner("fail", "Ollama test failed: " + JSON.stringify(e.body || e.message));
+    }
+  }
+
+  function saveApiOnly() {
+    if (!apiInput.value.trim()) {
+      showBanner("fail", "API base URL cannot be empty.");
+      return;
+    }
+    commitSettings();
+    showBanner("ok", "API URL saved (not connectivity-tested). Use Test connection to verify.");
+  }
+
+  function saveInferenceOnly() {
+    const { chat } = backendsForMode(inferMode.value);
+    if (chat === "nim" && !nimKey.value.trim()) {
+      showBanner("fail", "NIM mode requires an API key. Test & save the key first.");
+      return;
+    }
+    commitSettings();
+    showBanner("ok", "Inference mode saved.");
+    refreshModelMap();
+  }
+
+  function clearSavedKey() {
+    if (!confirm("Remove the saved NVIDIA API key from this browser?")) return;
+    nimKey.value = "";
+    localStorage.removeItem(LS_KEY);
+    localStorage.removeItem(LS_NIM_OK);
+    savedSnapshot.key = "";
+    renderMeta();
+    renderChips();
+    showBanner("info", "Saved API key cleared from localStorage.");
+  }
+
+  document.getElementById("testApi").addEventListener("click", testApiConnection);
+  document.getElementById("saveApi").addEventListener("click", saveApiOnly);
+  document.getElementById("testNim").addEventListener("click", testNimKey);
+  document.getElementById("testOllama").addEventListener("click", testOllamaLocal);
+  document.getElementById("saveInference").addEventListener("click", saveInferenceOnly);
+  document.getElementById("clearKey").addEventListener("click", clearSavedKey);
+  document.getElementById("toggleKey").addEventListener("click", () => {
+    const btn = document.getElementById("toggleKey");
+    const show = nimKey.type === "password";
+    nimKey.type = show ? "text" : "password";
+    btn.textContent = show ? "Hide" : "Show";
+  });
+  inferMode.addEventListener("change", () => {
+    renderMeta();
+    renderChips();
+    refreshModelMap();
+  });
+  nimKey.addEventListener("input", () => {
+    renderMeta();
+    if (nimKey.value !== savedSnapshot.key) {
+      localStorage.removeItem(LS_NIM_OK);
+      renderChips();
+    }
+  });
+
+  async function runSuite(includeLlm) {
+    const base = apiInput.value.trim();
+    if (!base) {
+      summaryEl.textContent = "Enter an API base URL.";
+      return;
+    }
+    const { chat, embed } = backendsForMode(inferMode.value);
+    if (includeLlm && chat === "nim" && !nimKey.value.trim()) {
+      showBanner("fail", "Add and test your NVIDIA API key before LLM tests.");
+      summaryEl.textContent = "LLM run blocked — missing NIM key.";
+      return;
+    }
+    if (includeLlm && chat === "nim" && !localStorage.getItem(LS_NIM_OK)) {
+      showBanner("info", "NIM key not verified yet — consider Test NIM key first.");
+    }
+    commitSettings();
+
+    testsEl.innerHTML = "";
+    const defs = includeLlm ? [...coreTests, llmTest] : coreTests;
+    const cards = defs.map((d) => {
+      const c = testCard(d);
+      return { def: d, card: c };
+    });
+
+    const runBtn = document.getElementById("runAll");
+    const llmBtn = document.getElementById("runLlm");
+    runBtn.disabled = true;
+    llmBtn.disabled = true;
+    summaryEl.textContent = "Running…";
+
+    let passed = 0;
+    for (const { def, card } of cards) {
+      try {
+        const data = await def.run(base);
+        const ok = def.pass(data);
+        if (ok) passed += 1;
+        setResult(card, ok, data);
+      } catch (e) {
+        setResult(card, false, e.body || { error: e.message });
+      }
+    }
+
+    const total = cards.length;
+    summaryEl.textContent =
+      passed === total
+        ? `All ${total} checks passed.`
+        : `${passed} / ${total} passed — fix failures above (DB import, Ollama, or API not running).`;
+    runBtn.disabled = false;
+    llmBtn.disabled = false;
+  }
+
+  async function refreshModelMap() {
+    const base = apiInput.value.trim() || defaultBase;
+    try {
+      const data = await fetchJson(base, "/ai/inference/status");
+      const { chat, embed } = backendsForMode(inferMode.value);
+      modelMapEl.textContent =
+        "This run: chat→" + chat + ", embed→" + embed + " | Ollama: " +
+        data.ollama.text + " / " + data.ollama.embed + " | NIM: " +
+        data.nim.text + " / " + data.nim.vision;
+    } catch (e) {
+      modelMapEl.textContent = String(e?.message || "").includes("404")
+        ? "Missing /ai/inference/status — restart uvicorn with --reload on the latest main.py"
+        : "Could not load /ai/inference/status (is the API running?)";
+    }
+  }
+
+  document.getElementById("runAll").addEventListener("click", () => runSuite(false));
+  document.getElementById("runLlm").addEventListener("click", () => runSuite(true));
+  refreshModelMap();
+  </script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+psycopg[binary]
+pgvector
+python-dotenv
+ollama
+numpy
+pydantic
+httpx
+opencv-python-headless
+pymupdf
+pillow
+python-multipart

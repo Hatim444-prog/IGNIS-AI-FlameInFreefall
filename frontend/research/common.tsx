@@ -1,6 +1,5 @@
-"use client";
 import { usePreference } from "./preferences";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useExperiments, label, origin, type Evidence } from "./api";
 export function Header({
@@ -97,7 +96,7 @@ export function Picker() {
 }
 export function RunLink({ code }: { code: string }) {
   return (
-    <Link className="mono" href={"/experiments/" + encodeURIComponent(code)}>
+    <Link className="mono" to={"/experiments/" + encodeURIComponent(code)}>
       {code}
     </Link>
   );

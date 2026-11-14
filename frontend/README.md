@@ -1,13 +1,13 @@
 # IGNIS research frontend
 
-The Next.js App Router application runs at http://127.0.0.1:5173. Start the FastAPI service with the root start.bat, then start the frontend with start-frontend.bat. For a fresh checkout use Node 24 and run the following in frontend.
+The Vite + React application runs at http://127.0.0.1:5173. Start the FastAPI service with the root start.bat, then start the frontend with start-frontend.bat. For a fresh checkout use Node 24 and run the following in frontend.
 
 ```powershell
 npm ci
 npm run dev
 ```
 
-For a production build run npm run build, then npm start. Both development and production bind to loopback. Copy .env.example to .env.local to change the server-side API origin. The browser sends same-origin requests to /ai. The route handler streams uploads and responses to the configured FastAPI origin and allows only operations in the exported contract. The optional NIM credential belongs in the server environment. Settings selects local, hosted, or mixed inference.
+For a production build run `npm run build`, then `npm start` (Vite preview). Both development and preview bind to loopback. Copy `.env.example` to `.env.local` to change the API origin and optional server-side NIM credential. The browser sends same-origin requests to `/ai`. The dev and preview servers proxy `/ai` to the configured FastAPI origin, validate routes against the exported contract, and map inference mode headers like the former Next.js handler. Settings selects local, hosted, or mixed inference.
 
 ## Research workflows
 
@@ -19,7 +19,7 @@ For a production build run npm run build, then npm start. Both development and p
 - Mission Advisor submits validated scenario inputs, displays NASA-linked and external groups, coverage and weighted dimensions, and exports the submitted scenario with its response.
 - Investigations groups the available records. A comprehensive catalog, a browsable source inventory and direct PDF page access require additional backend endpoints. The sources page links to the evidence available today.
 
-The former /measurements, /vision and /mission URLs redirect to their corresponding Next.js pages. The earlier Vite prototype is retained under src for reference and is outside the active routing tree.
+Legacy `/measurements`, `/vision` and `/mission` URLs redirect to `/analytics`, `/media`, and `/mission-advisor`. The older JSX prototype under `src/components` and `src/screens` is unused; routing lives in `src/App.tsx` and `research/`.
 
 ## Contract and checks
 

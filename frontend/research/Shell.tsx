@@ -1,7 +1,5 @@
-"use client";
 import { usePreference } from "./preferences";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, useLocation } from "react-router-dom";
 import { useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -58,7 +56,7 @@ export default function Shell({ children }: { children: ReactNode }) {
   );
 }
 function Workspace({ children }: { children: ReactNode }) {
-  const path = usePathname();
+  const path = useLocation().pathname;
   const health = useHealth();
   const [compact, setCompact] = useState(false),
     [open, setOpen] = useState(false);
@@ -78,7 +76,7 @@ function Workspace({ children }: { children: ReactNode }) {
           {g.links.map(([href, title, Icon]) => (
             <Link
               key={href}
-              href={href}
+              to={href}
               title={title}
               aria-current={href === path ? "page" : undefined}
               onClick={() => setOpen(false)}
@@ -130,10 +128,10 @@ function Workspace({ children }: { children: ReactNode }) {
             Workspace / <b>{current}</b>
           </span>
           <div className="tools">
-            <Link href="/experiments#search" aria-label="Search experiments">
+            <Link to="/experiments#search" aria-label="Search experiments">
               <Search size={17} />
             </Link>
-            <Link href="/settings" className="status">
+            <Link to="/settings" className="status">
               <i className={health.data ? "online" : ""} />
               {health.isPending
                 ? "Checking API"

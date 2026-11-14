@@ -1,7 +1,7 @@
 "use client";
 import { useMutation } from "@tanstack/react-query";
 import { usePreference } from "./preferences";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { z } from "zod";
 import { Header, State } from "./common";
 import { useHealth, useDatabase, request } from "./api";
@@ -99,9 +99,9 @@ export function Sources() {
           additional backend endpoints.
         </p>
         <div className="actions">
-          <Link href="/assistant">Inspect answer citations →</Link>
-          <Link href="/analytics">Inspect measurement sources →</Link>
-          <Link href="/media/library">Search visual observations →</Link>
+          <Link to="/assistant">Inspect answer citations →</Link>
+          <Link to="/analytics">Inspect measurement sources →</Link>
+          <Link to="/media/library">Search visual observations →</Link>
         </div>
       </section>
     </>

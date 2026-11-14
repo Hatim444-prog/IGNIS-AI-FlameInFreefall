@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/ken/Documents/GitHubl/IGNIS-AI-FlameInFreefall/frontend/app/error.tsx"],"sourcesContent":["\"use client\";\r\nexport default function ErrorPage({ reset }: { reset: () => void }) {\r\n  return (\r\n    <section className=\"panel\" role=\"alert\">\r\n      <h1>This view could not load</h1>\r\n      <button onClick={reset}>Retry view</button>\r\n    </section>\r\n  );\r\n}\r\n"],"names":["ErrorPage","reset","className","role","onClick"],"mappings":";;;;;AAAA;;AACe,SAASA,UAAU,EAAEC,KAAK,EAAyB;IAChE,qBACE,8OAAC;QAAQC,WAAU;QAAQC,MAAK;;0BAC9B,8OAAC;0BAAG;;;;;;0BACJ,8OAAC;gBAAOC,SAASH;0BAAO;;;;;;;;;;;;AAG9B"}}]
+}

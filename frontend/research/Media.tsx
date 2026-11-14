@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import type { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { Header, State, EvidenceCards } from "./common";
@@ -180,7 +180,7 @@ export function Media() {
           )}
         </section>
       )}
-      <Link href="/media/library">Search visual evidence →</Link>
+      <Link to="/media/library">Search visual evidence →</Link>
     </>
   );
 }
@@ -226,7 +226,7 @@ export function Library() {
           <button className="primary" disabled={!query.trim() || m.isPending}>
             {m.isPending ? "Searching…" : "Search library"}
           </button>
-          <Link href="/media">Analyze media →</Link>
+          <Link to="/media">Analyze media →</Link>
         </div>
       </form>
       {m.error && (

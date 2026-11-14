@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import { Header, State, RunLink, Fields, useSelection } from "./common";
 import {
@@ -22,13 +22,13 @@ export function Overview() {
           trace mission research to its evidence.
         </Header>
         <div className="actions">
-          <Link className="action primary" href="/experiments">
+          <Link className="action primary" to="/experiments">
             Explore experiments →
           </Link>
-          <Link className="action" href="/assistant">
+          <Link className="action" to="/assistant">
             Ask IGNIS AI
           </Link>
-          <Link className="action" href="/mission-advisor">
+          <Link className="action" to="/mission-advisor">
             Analyze mission
           </Link>
         </div>
@@ -63,7 +63,7 @@ export function Overview() {
             </div>
           ))}
           {q.data && !q.data.experiments.length && <p>No records returned.</p>}
-          <Link href="/investigations">Browse investigations →</Link>
+          <Link to="/investigations">Browse investigations →</Link>
         </section>
         <section className="panel">
           <h2>Measurement coverage</h2>
@@ -298,10 +298,10 @@ export function Explorer() {
         )}
       </section>
       <div className="actions">
-        <Link className="action" href="/analytics">
+        <Link className="action" to="/analytics">
           Compare selected ({codes.length})
         </Link>
-        <Link href="/assistant">Ask about selection →</Link>
+        <Link to="/assistant">Ask about selection →</Link>
       </div>
     </>
   );
@@ -344,7 +344,7 @@ export function Detail({ code }: { code: string }) {
               {["analytics", "assistant"].map((route) => (
                 <Link
                   key={route}
-                  href={"/" + route}
+                  to={"/" + route}
                   onClick={() => set(Array.from(new Set([...codes, code])))}
                 >
                   {route === "analytics"
@@ -388,7 +388,7 @@ export function Investigations() {
             )}
           </p>
           <Link
-            href={
+            to={
               "/experiments?investigation_title=" +
               encodeURIComponent(rows[0].investigation_title || "")
             }

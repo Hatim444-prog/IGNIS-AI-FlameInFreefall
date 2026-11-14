@@ -1,74 +1,54 @@
-# Deploy IGNIS on Vercel
+# Deploy IGNIS as a Vercel multi-service project
 
-The Vercel project serves the Vite frontend and provides a small same-origin
-API proxy. FastAPI, PostgreSQL/pgvector, Ollama, source files, and embeddings
-remain on a separate backend host. The Vercel deployment cannot reach a
-developer's 127.0.0.1.
+The repository root `vercel.json` defines two services in one Vercel project:
 
-## Vercel project settings
+- `frontend` is the public Vite application.
+- `ai-service` is the FastAPI backend and stays internal. The frontend service
+  calls it through the `IGNIS_API_ORIGIN` service binding.
 
-1. Import the Git repository into Vercel.
-2. Set **Root Directory** to **frontend**.
-3. Select the Vite framework preset, Node.js 24.x, and use the committed
-   frontend/vercel.json build settings.
-4. Set IGNIS_API_ORIGIN to the public HTTPS origin serving FastAPI, for
-   example https://ignis-api.example.com. Do not include /ai or a trailing
-   path.
-5. If the backend uses NVIDIA NIM, set IGNIS_NIM_API_KEY as a Vercel server
-   environment variable. Never use a VITE_ prefix for this key.
-6. Deploy the project.
+Vercel Services are currently in beta. The top-level catch-all rewrite exposes
+only the frontend service. Within that service, `/ai/*` is sent to the
+server-side proxy function, which uses the private backend binding; all other
+paths serve the Vite single-page application.
 
-The function forwards only endpoints and methods listed in
-ignis_openapi.json. It forwards requests to IGNIS_API_ORIGIN, passes model
-selection headers, and adds the server-side NIM key to inference requests.
-Its configured maximum duration is 300 seconds.
+## Vercel project setup
 
-## Media uploads
+1. Import this repository into Vercel and keep the project root at the
+   repository root. Do not set the project root to `frontend`.
+2. Keep the committed `vercel.json`; it defines each service's framework,
+   build settings, binding, and request routing.
+3. Add the following environment variables in Vercel for the appropriate
+   service and deployment environments:
+   - `DATABASE_URL` on `ai-service`, pointing to a reachable PostgreSQL
+     database with the project's pgvector schema and indexed research data.
+   - `IGNIS_NIM_API_KEY` on `frontend` if the proxy should provide the NVIDIA
+     NIM credential for inference requests. Keep it server-side; do not use a
+     `VITE_` prefix.
+   - Any backend inference variables required by the selected provider on
+     `ai-service` (for example, `NIM_BASE_URL`).
+4. Do not manually set `IGNIS_API_ORIGIN`. Vercel injects it into `frontend`
+   from the `ai-service` binding.
+5. Deploy the project.
 
-Vercel Function requests have a 4.5 MB total body limit. The media screen
-therefore caps uploads at 4 MiB when requests use the Vercel proxy. To retain
-the backend's full 10 MiB image and 30 MiB MP4 limits, set the frontend build
-variable VITE_IGNIS_API_URL to the public HTTPS FastAPI origin. Browser
-requests then go directly to FastAPI, so the backend must allow the deployed
-Vercel origin in CORS.
+The app calls `/ai/*` on its own origin. The proxy validates paths and methods
+against `ignis_openapi.json`, forwards model-selection headers, and can attach
+the server-side NIM key. The proxy is configured for a maximum duration of 300
+seconds. Vercel Function requests have a 4.5 MB total body limit, so media
+uploads through this path must remain under that limit; the UI caps them at 4
+MiB.
 
-Set IGNIS_CORS_ORIGINS on the backend to the comma-separated production and
-preview origins that should be allowed. For example:
+## Backend dependencies
 
-    IGNIS_CORS_ORIGINS=https://ignis.example.com,https://ignis-git-main-team.vercel.app
+The FastAPI service needs a reachable PostgreSQL/pgvector database containing
+the imported documents and measurements. Vercel does not provide the local
+PostgreSQL or Ollama instances used by the development setup. Configure a
+reachable inference provider for production; the backend must not depend on a
+developer's `127.0.0.1` services.
 
-Avoid a wildcard origin for a credentialed API. Vercel preview domains can
-change, so add the preview origins you use or use the same-origin proxy with
-uploads under 4 MiB.
+## Local development
 
-## Backend requirements
-
-Deploy FastAPI to a host that can reach PostgreSQL/pgvector, the imported source
-documents, and its configured inference provider. If using local Ollama, that
-Ollama server must run on the backend host. For a backend using NIM for chat,
-keep document embeddings on the database-compatible 768-dimensional embedding
-model configured by the project. A successful frontend deployment does not
-deploy or expose the FastAPI service.
-
-## Environment variable reference
-
-| Variable | Where | Purpose |
-| --- | --- | --- |
-| IGNIS_API_ORIGIN | Vercel Function environment | Public FastAPI origin used by the same-origin proxy |
-| IGNIS_NIM_API_KEY | Vercel Function environment, optional | Server-side key for NVIDIA inference |
-| VITE_IGNIS_API_URL | Vercel build environment, optional | Direct browser-to-FastAPI requests, including large uploads |
-| IGNIS_CORS_ORIGINS | FastAPI host, direct API only | Allowed browser origins, comma separated |
-
-Do not put database credentials, NIM keys, or other server secrets in a
-VITE_ variable. Vite embeds those values in public browser assets.
-
-## Local deployment preview
-
-With Vercel CLI installed, from frontend run:
-
-    npm ci
-    vercel dev
-
-Provide IGNIS_API_ORIGIN=http://127.0.0.1:8001 in the local Vercel
-environment for the proxy. Normal local development remains available through
-npm run dev, which uses the Vite proxy.
+Normal local development remains available through `npm run dev` in `frontend`
+and the repository's FastAPI startup script. The Vite proxy continues to use
+`IGNIS_API_ORIGIN` locally, defaulting to `http://127.0.0.1:8001`. For local
+Vercel Services development, use `vercel dev` from the repository root so
+Vercel can inject service bindings.

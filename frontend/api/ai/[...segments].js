@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     res.setHeader("Content-Type", "application/json");
     res.end(
       JSON.stringify({
-        detail: "Set IGNIS_API_ORIGIN to the public HTTPS URL of the IGNIS API.",
+        detail: "The IGNIS_API_ORIGIN service binding is unavailable.",
       }),
     );
     return;

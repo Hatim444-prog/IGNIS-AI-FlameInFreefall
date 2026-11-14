@@ -42,18 +42,9 @@ export async function handleAiProxy(req, res, options) {
         path.startsWith("/ai/vision/") ||
         path === "/ai/inference/test")
     ) {
-      if (!options.nimApiKey) {
-        res.statusCode = 503;
-        res.setHeader("Content-Type", "application/json");
-        res.end(
-          JSON.stringify({
-            detail:
-              "Configure IGNIS_NIM_API_KEY on the frontend server to use NVIDIA inference.",
-          }),
-        );
-        return true;
+      if (options.nimApiKey) {
+        headers.set("Authorization", "Bearer " + options.nimApiKey);
       }
-      headers.set("Authorization", "Bearer " + options.nimApiKey);
     }
   }
 

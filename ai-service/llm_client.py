@@ -57,8 +57,9 @@ def model_map(cfg: InferenceConfig) -> dict[str, Any]:
 def _require_nim_key(cfg: InferenceConfig) -> str:
     if not cfg.nim_api_key:
         raise InferenceError(
-            "NVIDIA API key missing. Paste your nvapi key in /test/ (saved in "
-            "your browser) or send Authorization: Bearer <key> / X-NVIDIA-Api-Key."
+            "NVIDIA API key missing. Set IGNIS_NIM_API_KEY in .env (repo root or "
+            "frontend), paste a key in /test/, or send Authorization: Bearer "
+            "<key> / X-NVIDIA-Api-Key."
         )
     return cfg.nim_api_key
 

@@ -5,10 +5,25 @@ import { defineConfig, loadEnv } from 'vite'
 import { handleAiProxy } from './server/aiProxy.mjs'
 
 const root = path.dirname(fileURLToPath(import.meta.url))
+const repoRoot = path.resolve(root, '..')
+
+/** @param {string} mode */
+function loadIgnisEnv(mode) {
+  const prefixes = ['IGNIS_', 'NIM_', 'NVIDIA_']
+  return {
+    ...loadEnv(mode, repoRoot, prefixes),
+    ...loadEnv(mode, root, prefixes),
+  }
+}
 
 function ignisAiProxy(env) {
-  const apiOrigin = env.IGNIS_API_ORIGIN || 'http://127.0.0.1:8001'
-  const nimApiKey = env.IGNIS_NIM_API_KEY
+  const apiOrigin =
+    env.IGNIS_API_ORIGIN || process.env.IGNIS_API_ORIGIN || 'http://127.0.0.1:8001'
+  const nimApiKey =
+    env.IGNIS_NIM_API_KEY ||
+    env.NVIDIA_API_KEY ||
+    env.NIM_API_KEY ||
+    process.env.IGNIS_NIM_API_KEY
   return {
     name: 'ignis-ai-proxy',
     configureServer(server) {
@@ -29,7 +44,7 @@ function ignisAiProxy(env) {
 }
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, root, '')
+  const env = loadIgnisEnv(mode)
   return {
     plugins: [react(), ignisAiProxy(env)],
     resolve: {

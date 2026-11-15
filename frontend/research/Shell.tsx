@@ -21,7 +21,8 @@ import {
   Minimize,
   ArrowUpRight,
 } from "lucide-react";
-import { SelectionProvider } from "./common";
+import { SelectionProvider, useMedia } from "./common";
+import { usePreference } from "./preferences";
 import { useHealth } from "./api";
 
 const groups = [
@@ -61,7 +62,12 @@ function Workspace({ children }: { children: ReactNode }) {
   const path = useLocation().pathname;
   const navigate = useNavigate();
   const health = useHealth();
-  const [compact, setCompact] = useState(false);
+  const [sidebar, setSidebar] = usePreference("ignis_sidebar_compact", "false");
+  const compact = sidebar === "true";
+  const [theme] = usePreference("ignis_theme", "dark");
+  const [motion] = usePreference("ignis_motion", "system");
+  const systemLight = useMedia("(prefers-color-scheme: light)");
+  const resolvedTheme = theme === "system" ? (systemLight ? "light" : "dark") : theme;
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [fullscreen, setFullscreen] = useState(false);
@@ -69,7 +75,7 @@ function Workspace({ children }: { children: ReactNode }) {
   const search = useRef<HTMLInputElement>(null);
   const current =
     groups.flatMap((g) => [...g.links]).find((l) => l[0] === path)?.[1] ||
-    (path === "/settings" ? "Service settings" : "Experiment detail");
+    (path === "/settings" ? "Settings" : "Experiment detail");
 
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
@@ -153,7 +159,8 @@ function Workspace({ children }: { children: ReactNode }) {
 
   return (
     <div
-      data-theme="dark"
+      data-theme={resolvedTheme}
+      data-motion={motion}
       className={"shell " + (compact ? "compact" : "")}
     >
       <a className="skip" href="#content">
@@ -165,7 +172,7 @@ function Workspace({ children }: { children: ReactNode }) {
           <button
             aria-label="Collapse or expand sidebar"
             className="desktop icon-button collapse-button"
-            onClick={() => setCompact(!compact)}
+            onClick={() => setSidebar(String(!compact))}
           >
             <PanelLeft size={18} />
           </button>
@@ -180,7 +187,7 @@ function Workspace({ children }: { children: ReactNode }) {
             </Dialog.Trigger>
             <Dialog.Portal>
               <Dialog.Overlay className="overlay" />
-              <Dialog.Content className="drawer" aria-describedby={undefined}>
+              <Dialog.Content className="drawer" data-theme={resolvedTheme} data-motion={motion} aria-describedby={undefined}>
                 <Dialog.Title className="sr-only">Navigation</Dialog.Title>
                 <Dialog.Close
                   className="drawer-close icon-button"

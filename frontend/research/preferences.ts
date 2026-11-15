@@ -1,4 +1,20 @@
 import { useSyncExternalStore } from "react";
+export const workspaceDefaults = {
+  ignis_theme: "dark",
+  ignis_motion: "system",
+  ignis_sidebar_compact: "false",
+  ignis_default_dataset: "curated",
+  ignis_page_size: "12",
+  ignis_assistant_mode: "Hybrid",
+  ignis_infer_mode: "nim-mixed",
+} as const;
+
+export function resetWorkspacePreferences() {
+  Object.entries(workspaceDefaults).forEach(([key, value]) =>
+    localStorage.setItem(key, value),
+  );
+  window.dispatchEvent(new Event("ignis-preference"));
+}
 function subscribe(update: () => void) {
   window.addEventListener("storage", update);
   window.addEventListener("ignis-preference", update);

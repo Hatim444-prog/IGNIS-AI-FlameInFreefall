@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Copy, Download, FileText, FlaskConical, ScanLine } from "lucide-react";
 import Markdown from "react-markdown";
+import { usePreference } from "./preferences";
 import { useSearchParams } from "react-router-dom";
 import type { z } from "zod";
 import { Header, Picker, EvidenceCards, Pending, useSelection } from "./common";
@@ -69,6 +70,8 @@ function documentScope(names: string[]) {
 }
 
 export default function Assistant() {
+  const [defaultMode] = usePreference("ignis_assistant_mode", "Hybrid");
+  const [motionPreference] = usePreference("ignis_motion", "system");
   const documents = useDocuments();
   const experiments = useAllExperiments();
   const [params, setParams] = useSearchParams();
@@ -82,7 +85,7 @@ export default function Assistant() {
   const { codes } = useSelection(),
     vars = useVariables();
   const [mode, choose] = useState<Mode>(
-      documentNames.length ? "Paper" : "Hybrid",
+      documentNames.length ? "Paper" : (defaultMode in modeMeta ? defaultMode as Mode : "Hybrid"),
     ),
     [question, edit] = useState(""),
     [variable, select] = useState(""),
@@ -95,9 +98,9 @@ export default function Assistant() {
   useEffect(() => {
     const last = thread.current?.lastElementChild;
     if (!last) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduce = motionPreference === "reduced" || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     last.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" });
-  }, [turns]);
+  }, [turns, motionPreference]);
   async function ask() {
     const text = question.trim();
     if (text.length < 3 || busy) return;

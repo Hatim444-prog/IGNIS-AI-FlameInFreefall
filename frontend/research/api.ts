@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import type { paths, components } from "./contract";
-import { getApiBase } from "../src/lib/inference.js";
+import { getApiBase, inferenceHeaders } from "../src/lib/inference.js";
 export type Models = components["schemas"];
 const scalar = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 export const evidence = z.record(z.string(), scalar);
@@ -79,6 +79,7 @@ async function request<T>(
     response = await fetch(getApiBase() + path + query, {
       ...options,
       headers: {
+        ...inferenceHeaders(),
         ...options.headers,
         "x-ignis-mode": localStorage.getItem("ignis_infer_mode") || "nim-mixed",
       },
@@ -150,6 +151,9 @@ export function uploadObservation(
       "x-ignis-mode",
       localStorage.getItem("ignis_infer_mode") || "nim-mixed",
     );
+    for (const [name, value] of Object.entries(inferenceHeaders())) {
+      xhr.setRequestHeader(name, value);
+    }
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable)
         onProgress(Math.round((e.loaded / e.total) * 100));

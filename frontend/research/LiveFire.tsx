@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { usePreference } from "./preferences";
 
 // The scrolling noise field bends and breaks the flame front as hot gas rises.
 const fragment = `
@@ -24,6 +25,7 @@ void main(){
   gl_FragColor=vec4(col,1.);
 }`;
 export default function LiveFire() {
+  const [motionPreference] = usePreference("ignis_motion", "system");
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const canvas = ref.current;
@@ -55,7 +57,7 @@ export default function LiveFire() {
         if(canvas.width!==width || canvas.height!==height){canvas.width=width;canvas.height=height;}
         gl.viewport(0,0,width,height);gl.uniform1f(time,(now/1000)%4096);gl.drawArrays(gl.TRIANGLES,0,3);last=now;
       }
-      if(!motion.matches && visible && !document.hidden) frame=requestAnimationFrame(draw);
+      if(!motion.matches && motionPreference !== "reduced" && visible && !document.hidden) frame=requestAnimationFrame(draw);
     }
     function refresh(){cancelAnimationFrame(frame);if(visible && !document.hidden) frame=requestAnimationFrame(draw);}
     const observer=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;refresh();});
@@ -63,6 +65,6 @@ export default function LiveFire() {
     motion.addEventListener("change",refresh);document.addEventListener("visibilitychange",refresh);
     refresh();
     return ()=>{cancelAnimationFrame(frame);observer.disconnect();motion.removeEventListener("change",refresh);document.removeEventListener("visibilitychange",refresh);gl.deleteBuffer(buffer);gl.deleteProgram(program);};
-  },[]);
+  },[motionPreference]);
   return <canvas aria-hidden="true" className="live-fire" ref={ref}/>;
 }

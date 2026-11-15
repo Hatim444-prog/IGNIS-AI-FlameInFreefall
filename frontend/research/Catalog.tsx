@@ -1,6 +1,7 @@
 "use client";
 import { Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
+import { usePreference } from "./preferences";
 import DocumentCollection from "./DocumentCollection";
 import { Header, State, RunLink, Fields, Pending, useMedia, useSelection } from "./common";
 import {
@@ -17,7 +18,6 @@ import {
 } from "./api";
 export { default as Overview } from "./Overview";
 
-const PAGE_SIZE = 12;
 const rangeFilters = {
   oxygen_percent: "Oxygen (%)",
   pressure_pa: "Pressure (Pa)",
@@ -76,6 +76,9 @@ function StudyIdentity({ experiment }: { experiment: Experiment }) {
 }
 
 export function Explorer() {
+  const [defaultDataset] = usePreference("ignis_default_dataset", "curated");
+  const [storedPageSize] = usePreference("ignis_page_size", "12");
+  const pageSize = [12, 24, 48].includes(Number(storedPageSize)) ? Number(storedPageSize) : 12;
   const { codes, set } = useSelection();
   const [searchParams, setSearchParams] = useSearchParams();
   const filters = Object.fromEntries(searchParams);
@@ -107,13 +110,13 @@ export function Explorer() {
         ? filters.airflow
         : undefined,
     sort: filters.sort || "airflow_first",
-    curated: filters.dataset !== "all",
-    limit: PAGE_SIZE,
-    offset: page * PAGE_SIZE,
+    curated: (filters.dataset || defaultDataset) !== "all",
+    limit: pageSize,
+    offset: page * pageSize,
   };
   const q = useExperimentPage(query);
   const total = q.data?.total ?? 0;
-  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   function change(k: string, value: string) {
     const f = { ...filters, [k]: value };
@@ -141,7 +144,7 @@ export function Explorer() {
       <label>
         Dataset
         <select
-          value={filters.dataset || "curated"}
+          value={filters.dataset || defaultDataset}
           onChange={(e) => change("dataset", e.target.value)}
         >
           <option value="curated">Top 150 — most complete</option>
@@ -427,7 +430,7 @@ export function Explorer() {
               </span>
               <button
                 type="button"
-                disabled={(page + 1) * PAGE_SIZE >= total}
+                disabled={(page + 1) * pageSize >= total}
                 onClick={() => setPage(page + 1)}
               >
                 Next

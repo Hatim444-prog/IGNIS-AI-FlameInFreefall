@@ -505,7 +505,7 @@ summary {
   min-width: 0;
 }
 .plot {
-  height: 280px;
+  height: 320px;
   min-width: 0;
 }
 .panel,
@@ -1368,7 +1368,21 @@ td {
   border: 1px solid #ffffff0c;
   border-radius: 12px;
   padding: 3px 7px;
-  font-size: 8px;
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.experiment-identity.study-stack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 11.5rem;
+  max-width: 22rem;
+}
+.study-stack .experiment-study {
+  width: 100%;
+  margin-top: 0;
+  -webkit-line-clamp: 3;
 }
 .panel-footnote {
   display: flex;
@@ -2739,16 +2753,83 @@ main,
   width: 100%;
   overflow: hidden;
 }
+.plot-angled {
+  height: 400px;
+}
+.plot-dense {
+  height: 420px;
+}
+.plot-angled.plot-dense {
+  height: 460px;
+}
+.chart-tip {
+  display: grid;
+  gap: 4px;
+  max-width: 16rem;
+  padding: 8px 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--fg);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.chart-tip p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.plot .recharts-brush text {
+  fill: var(--muted);
+  font-size: 11px;
+}
+.plot .recharts-brush > rect {
+  fill: var(--raised);
+}
+.plot .recharts-brush > rect.recharts-brush-slide {
+  fill: color-mix(in srgb, var(--accent) 35%, var(--raised));
+}
+.plot .recharts-brush-traveller rect {
+  fill: var(--accent);
+}
 .shell nav a span,
 .drawer nav a span {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.picker summary {
+.picker summary,
+.filter-drawer > summary {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   min-height: 44px;
   cursor: pointer;
+  list-style: none;
+}
+.picker summary::-webkit-details-marker,
+.filter-drawer > summary::-webkit-details-marker {
+  display: none;
+}
+.picker summary::after,
+.filter-drawer > summary::after {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-left: auto;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  flex: 0 0 auto;
+}
+.picker[open] summary::after,
+.filter-drawer[open] > summary::after {
+  transform: rotate(225deg) translateY(-2px);
+}
+.filter-drawer > summary {
+  color: var(--fg);
+  font-size: 18px;
+  font-weight: 620;
+  letter-spacing: -0.025em;
 }
 .picker .checks label {
   min-height: 44px;
@@ -2795,10 +2876,6 @@ main,
   }
 }
 @media (max-width: 980px) {
-  .compare-split .scope-panel {
-    order: -1;
-  }
-  .range-pair,
   .scenario-groups,
   .choice-actions {
     grid-template-columns: minmax(0, 1fr);
@@ -2850,8 +2927,131 @@ main,
   .columns-picker {
     width: 100%;
   }
+  .plot {
+    height: 340px;
+  }
+  .plot-angled,
+  .plot-dense,
+  .plot-angled.plot-dense {
+    height: 440px;
+  }
   .selection-bar .actions,
   .selection-bar .action {
     width: 100%;
   }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .picker summary::after,
+  .filter-drawer > summary::after {
+    transition: transform 160ms ease;
+  }
+}
+.explorer-table table {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+.explorer-table th,
+.explorer-table td {
+  font-size: 14px;
+  background: var(--panel);
+}
+.explorer-table th {
+  font-size: 12px;
+  font-weight: 600;
+}
+.explorer-table .num {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.explorer-table th:nth-child(1),
+.explorer-table td:nth-child(1),
+.explorer-table th:nth-child(2),
+.explorer-table td:nth-child(2) {
+  position: sticky;
+  z-index: 1;
+}
+.explorer-table th:nth-child(1),
+.explorer-table td:nth-child(1) {
+  left: 0;
+  width: 4.75rem;
+  min-width: 4.75rem;
+}
+.explorer-table th:nth-child(2),
+.explorer-table td:nth-child(2) {
+  left: 4.75rem;
+  min-width: 7.5rem;
+  box-shadow: 8px 0 8px -8px #0008;
+}
+.explorer-table thead th:nth-child(1),
+.explorer-table thead th:nth-child(2) {
+  z-index: 2;
+}
+.record-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.record-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--raised);
+  font-size: 14px;
+}
+.record-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.record-card-top .mono {
+  font-weight: 650;
+}
+.record-card-top > a:last-child {
+  margin-left: auto;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.record-check {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+}
+.record-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin: 0;
+}
+.record-facts dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+.record-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.file-name,
+.sample h3,
+.checks label,
+.evidence summary {
+  overflow-wrap: anywhere;
+}
+.checks label,
+.file-links .action,
+.sample,
+.file-name {
+  min-width: 0;
+  max-width: 100%;
+}
+.table .num {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }

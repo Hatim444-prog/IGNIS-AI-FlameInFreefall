@@ -75,6 +75,20 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
 // The context hook shares this provider module.
 // oxlint-disable-next-line react/only-export-components
 export const useSelection = () => useContext(Selection);
+// oxlint-disable-next-line react/only-export-components
+export function useMedia(query: string) {
+  const [matches, setMatches] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia(query).matches : false,
+  );
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const apply = () => setMatches(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, [query]);
+  return matches;
+}
 export function Picker({
   suppressStatus = false,
   startOpen = false,
@@ -87,7 +101,7 @@ export function Picker({
   const [filter, setFilter] = useState("");
   const details = useRef<HTMLDetailsElement>(null);
   useEffect(() => {
-    if (startOpen && details.current) details.current.open = true;
+    if (details.current) details.current.open = startOpen;
   }, [startOpen]);
   const query = filter.trim().toLowerCase();
   const experiments = q.data?.filter((e) =>

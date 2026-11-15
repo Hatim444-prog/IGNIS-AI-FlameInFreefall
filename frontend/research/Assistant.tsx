@@ -60,14 +60,7 @@ function markdown(t: Turn) {
           ]
         : [],
     ),
-    ...visibleNotes(t.reply.warnings),
-    ...visibleNotes(t.reply.limitations),
   ].join("\n\n");
-}
-function visibleNotes(notes: string[] | undefined) {
-  return (notes || []).filter(
-    (note) => !/model|ollama|nomic|nemotron|nvidia|embed/i.test(note),
-  );
 }
 function documentScope(names: string[]) {
   if (!names.length) return "All indexed documents";
@@ -354,14 +347,6 @@ export default function Assistant() {
                       </section>
                     ) : null,
                   )}
-                  {[
-                    ...visibleNotes(t.reply.warnings),
-                    ...visibleNotes(t.reply.limitations),
-                  ].map((w) => (
-                    <p className="notice" key={w}>
-                      {w}
-                    </p>
-                  ))}
                   <div className="actions">
                     <button
                       type="button"

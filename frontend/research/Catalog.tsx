@@ -2,7 +2,7 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import DocumentCollection from "./DocumentCollection";
-import { Header, State, RunLink, Fields, Pending, useSelection } from "./common";
+import { Header, State, RunLink, Fields, Pending, useMedia, useSelection } from "./common";
 import {
   useExperimentPage,
   useExperimentDetail,
@@ -10,6 +10,7 @@ import {
   useExperimentFacets,
   origin,
   label,
+  formatMeasure,
   type ExperimentQuery,
   type ExperimentDetail,
   type Experiment,
@@ -33,14 +34,46 @@ function num(value: string | undefined): number | undefined {
 }
 
 const OPTIONAL_COLUMNS = [
-  { key: "fuel_material", label: "Fuel", render: (e: Experiment) => e.fuel_material ?? "Not reported" },
-  { key: "oxygen_percent", label: "Oxygen (%)", render: (e: Experiment) => e.oxygen_percent ?? "Not reported" },
-  { key: "pressure_pa", label: "Pressure (Pa)", render: (e: Experiment) => e.pressure_pa ?? "Not reported" },
-  { key: "airflow_m_s", label: "Airflow (m/s)", render: (e: Experiment) => e.airflow_m_s ?? "Not reported" },
-  { key: "gravity_condition", label: "Gravity", render: (e: Experiment) => e.gravity_condition ?? "Not reported" },
-  { key: "experiment_date", label: "Date", render: (e: Experiment) => e.experiment_date ?? "Not reported" },
-  { key: "completeness_score", label: "Completeness", render: (e: Experiment) => e.completeness_score ?? "—" },
+  { key: "fuel_material", label: "Fuel", numeric: false, render: (e: Experiment) => e.fuel_material ?? "Not reported" },
+  { key: "oxygen_percent", label: "Oxygen (%)", numeric: true, render: (e: Experiment) => e.oxygen_percent == null ? "Not reported" : formatMeasure(e.oxygen_percent) },
+  { key: "pressure_pa", label: "Pressure (Pa)", numeric: true, render: (e: Experiment) => e.pressure_pa == null ? "Not reported" : formatMeasure(e.pressure_pa) },
+  { key: "airflow_m_s", label: "Airflow (m/s)", numeric: true, render: (e: Experiment) => e.airflow_m_s == null ? "Not reported" : formatMeasure(e.airflow_m_s) },
+  { key: "gravity_condition", label: "Gravity", numeric: false, render: (e: Experiment) => e.gravity_condition ?? "Not reported" },
+  { key: "experiment_date", label: "Date", numeric: true, render: (e: Experiment) => e.experiment_date ?? "Not reported" },
+  { key: "completeness_score", label: "Completeness", numeric: true, render: (e: Experiment) => e.completeness_score == null ? "—" : formatMeasure(e.completeness_score) },
 ] as const;
+const FILTER_KEYS = [
+  "investigation",
+  "airflow",
+  "fuel_material",
+  "gravity_condition",
+  "oxygen_percentMin",
+  "oxygen_percentMax",
+  "pressure_paMin",
+  "pressure_paMax",
+  "airflow_m_sMin",
+  "airflow_m_sMax",
+] as const;
+
+function detailPath(experiment: Experiment) {
+  return (
+    "/experiments/" +
+    encodeURIComponent(experiment.experiment_code) +
+    (experiment.investigation_code
+      ? "?investigation=" + encodeURIComponent(experiment.investigation_code)
+      : "")
+  );
+}
+function StudyIdentity({ experiment }: { experiment: Experiment }) {
+  return (
+    <div className="experiment-identity study-stack">
+      <span className="experiment-study">
+        {experiment.investigation_title || experiment.investigation_code}
+      </span>
+      <span className="origin-pill">{origin(experiment)}</span>
+    </div>
+  );
+}
 
 export function Explorer() {
   const { codes, set } = useSelection();
@@ -48,8 +81,10 @@ export function Explorer() {
   const filters = Object.fromEntries(searchParams);
   const [page, setPage] = useState(0);
   const [hiddenCols, setHiddenCols] = useState<ReadonlySet<string>>(
-    () => new Set(),
+    () => new Set(["experiment_date", "completeness_score"]),
   );
+  const compactFilters = useMedia("(max-width: 790px)");
+  const compactRows = useMedia("(max-width: 720px)");
   const facets = useExperimentFacets();
   const stats = useCatalogStats();
   const visibleCols = OPTIONAL_COLUMNS.filter(
@@ -88,6 +123,100 @@ export function Explorer() {
 
   const totals = stats.data?.totals;
   const investigations = stats.data?.investigations ?? [];
+  const activeFilters =
+    FILTER_KEYS.filter((key) => filters[key]).length +
+    (filters.dataset === "all" ? 1 : 0);
+  const filterLabel = activeFilters
+    ? `Filters · ${activeFilters} active`
+    : "Filters";
+  function selectExperiment(code: string, checked: boolean) {
+    set(checked ? [...codes, code] : codes.filter((item) => item !== code));
+  }
+  const filterFields = (
+    <>
+      {facets.isPending && !q.isPending && <Pending />}
+      {facets.error && facets.error.message !== q.error?.message && (
+        <State query={facets} />
+      )}
+      <label>
+        Dataset
+        <select
+          value={filters.dataset || "curated"}
+          onChange={(e) => change("dataset", e.target.value)}
+        >
+          <option value="curated">Top 150 — most complete</option>
+          <option value="all">All experiments</option>
+        </select>
+      </label>
+      <label>
+        Investigation
+        <select
+          value={filters.investigation || ""}
+          onChange={(e) => change("investigation", e.target.value)}
+        >
+          <option value="">All investigations</option>
+          {(facets.data?.investigations ?? []).map((inv) => (
+            <option key={inv.code} value={inv.code}>
+              {inv.code} — {inv.title}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Airflow availability
+        <select
+          value={filters.airflow || ""}
+          onChange={(e) => change("airflow", e.target.value)}
+        >
+          <option value="">All experiments</option>
+          <option value="reported">Reported only</option>
+          <option value="not_reported">Not reported only</option>
+        </select>
+      </label>
+      {(["fuel_material", "gravity_condition"] as const).map((k) => (
+        <label key={k}>
+          {titleCase(k)}
+          <select
+            value={filters[k] || ""}
+            onChange={(e) => change(k, e.target.value)}
+          >
+            <option value="">All</option>
+            {(facets.data?.[k] ?? []).map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </label>
+      ))}
+      <fieldset>
+        <legend>Numeric ranges</legend>
+        {Object.entries(rangeFilters).map(([k, title]) => (
+          <div className="range-pair" key={k}>
+            {["Min", "Max"].map((bound) => (
+              <label key={bound}>
+                {title} {bound}
+                <input
+                  type="number"
+                  value={filters[k + bound] || ""}
+                  onChange={(e) => change(k + bound, e.target.value)}
+                />
+              </label>
+            ))}
+          </div>
+        ))}
+      </fieldset>
+      <button
+        type="button"
+        onClick={() => {
+          setSearchParams({});
+          setPage(0);
+        }}
+      >
+        Reset filters
+      </button>
+    </>
+  );
 
   return (
     <div className="tool">
@@ -135,90 +264,17 @@ export function Explorer() {
         </label>
       </form>
       <div className="tool-split catalog-split">
-        <section className="panel scope-panel">
-          <h2>Filters</h2>
-          {facets.isPending && !q.isPending && <Pending />}
-          {facets.error && facets.error.message !== q.error?.message && (
-            <State query={facets} />
-          )}
-          <label>
-            Dataset
-            <select
-              value={filters.dataset || "curated"}
-              onChange={(e) => change("dataset", e.target.value)}
-            >
-              <option value="curated">Top 150 — most complete</option>
-              <option value="all">All experiments</option>
-            </select>
-          </label>
-          <label>
-            Investigation
-            <select
-              value={filters.investigation || ""}
-              onChange={(e) => change("investigation", e.target.value)}
-            >
-              <option value="">All investigations</option>
-              {(facets.data?.investigations ?? []).map((inv) => (
-                <option key={inv.code} value={inv.code}>
-                  {inv.code} — {inv.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Airflow availability
-            <select
-              value={filters.airflow || ""}
-              onChange={(e) => change("airflow", e.target.value)}
-            >
-              <option value="">All experiments</option>
-              <option value="reported">Reported only</option>
-              <option value="not_reported">Not reported only</option>
-            </select>
-          </label>
-          {(["fuel_material", "gravity_condition"] as const).map((k) => (
-            <label key={k}>
-              {titleCase(k)}
-              <select
-                value={filters[k] || ""}
-                onChange={(e) => change(k, e.target.value)}
-              >
-                <option value="">All</option>
-                {(facets.data?.[k] ?? []).map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ))}
-          <fieldset>
-            <legend>Numeric ranges</legend>
-            {Object.entries(rangeFilters).map(([k, title]) => (
-              <div className="range-pair" key={k}>
-                {["Min", "Max"].map((bound) => (
-                  <label key={bound}>
-                    {title} {bound}
-                    <input
-                      type="number"
-                      value={filters[k + bound] || ""}
-                      onChange={(e) => change(k + bound, e.target.value)}
-                    />
-                  </label>
-                ))}
-              </div>
-            ))}
-          </fieldset>
-          <button
-            type="button"
-            onClick={() => {
-              setSearchParams({});
-              setPage(0);
-            }}
-          >
-            Reset filters
-          </button>
-        </section>
+        {compactFilters ? (
+          <details className="panel scope-panel filter-drawer">
+            <summary>{filterLabel}</summary>
+            {filterFields}
+          </details>
+        ) : (
+          <section className="panel scope-panel">
+            <h2>{filterLabel}</h2>
+            {filterFields}
+          </section>
+        )}
         <section className="panel results-panel">
         <State query={q} />
         {q.data && (
@@ -262,76 +318,102 @@ export function Explorer() {
                 </div>
               </details>
             </div>
-            {q.data.experiments.length > 0 && (
-            <div className="table">
-              <table>
-                <thead>
-                  <tr>
-                    {[
-                      "Select",
-                      "Experiment",
-                      "Investigation",
-                      ...visibleCols.map((c) => c.label),
-                      "Details",
-                    ].map((h) => (
-                      <th key={h}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
+            {q.data.experiments.length > 0 &&
+              (compactRows ? (
+                <ul className="record-list">
                   {q.data.experiments.map((e) => (
-                    <tr key={e.investigation_code + ":" + e.experiment_code}>
-                      <td>
-                        <input
-                          aria-label={"Select " + e.experiment_code}
-                          type="checkbox"
-                          checked={codes.includes(e.experiment_code)}
-                          onChange={(ev) =>
-                            set(
-                              ev.target.checked
-                                ? [...codes, e.experiment_code]
-                                : codes.filter((c) => c !== e.experiment_code),
-                            )
-                          }
-                        />
-                      </td>
-                      <td>
+                    <li
+                      className="record-card"
+                      key={e.investigation_code + ":" + e.experiment_code}
+                    >
+                      <div className="record-card-top">
+                        <label className="record-check">
+                          <input
+                            aria-label={"Select " + e.experiment_code}
+                            type="checkbox"
+                            checked={codes.includes(e.experiment_code)}
+                            onChange={(ev) =>
+                              selectExperiment(
+                                e.experiment_code,
+                                ev.target.checked,
+                              )
+                            }
+                          />
+                        </label>
                         <RunLink code={e.experiment_code} />
-                      </td>
-                      <td>
-                        <div className="experiment-identity">
-                          <span className="experiment-study">
-                            {e.investigation_title || e.investigation_code}
-                          </span>
-                          <span className="origin-pill">
-                            {origin(e)}
-                          </span>
-                        </div>
-                      </td>
-                      {visibleCols.map((c) => (
-                        <td key={c.key}>{c.render(e)}</td>
-                      ))}
-                      <td>
-                        <Link
-                          className="mono"
-                          to={
-                            "/experiments/" +
-                            encodeURIComponent(e.experiment_code) +
-                            (e.investigation_code
-                              ? "?investigation=" +
-                                encodeURIComponent(e.investigation_code)
-                              : "")
-                          }
-                        >
-                          View
-                        </Link>
-                      </td>
-                    </tr>
+                        <Link to={detailPath(e)}>View</Link>
+                      </div>
+                      <StudyIdentity experiment={e} />
+                      {visibleCols.length > 0 && (
+                        <dl className="record-facts">
+                          {visibleCols.map((c) => (
+                            <div key={c.key}>
+                              <dt>{c.label}</dt>
+                              <dd>{c.render(e)}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      )}
+                    </li>
                   ))}
-                </tbody>
-              </table>
-            </div>
-            )}
+                </ul>
+              ) : (
+                <div className="table explorer-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Select</th>
+                        <th>Experiment</th>
+                        <th>Investigation</th>
+                        {visibleCols.map((c) => (
+                          <th key={c.key} className={c.numeric ? "num" : undefined}>
+                            {c.label}
+                          </th>
+                        ))}
+                        <th>Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {q.data.experiments.map((e) => (
+                        <tr key={e.investigation_code + ":" + e.experiment_code}>
+                          <td>
+                            <input
+                              aria-label={"Select " + e.experiment_code}
+                              type="checkbox"
+                              checked={codes.includes(e.experiment_code)}
+                              onChange={(ev) =>
+                                selectExperiment(
+                                  e.experiment_code,
+                                  ev.target.checked,
+                                )
+                              }
+                            />
+                          </td>
+                          <td>
+                            <RunLink code={e.experiment_code} />
+                          </td>
+                          <td>
+                            <StudyIdentity experiment={e} />
+                          </td>
+                          {visibleCols.map((c) => (
+                            <td
+                              key={c.key}
+                              className={c.numeric ? "num" : undefined}
+                            >
+                              {c.render(e)}
+                            </td>
+                          ))}
+                          <td>
+                            <Link className="mono" to={detailPath(e)}>
+                              View
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
             {!q.data.experiments.length && (
               <p className="empty-result">No matching records.</p>
             )}
@@ -517,13 +599,13 @@ export function Detail({ code }: { code: string }) {
                             {groups[g].map((m, i) => (
                               <tr key={g + i}>
                                 <td>{m.variable_name}</td>
-                                <td>
+                                <td className="num">
                                   {m.value != null
-                                    ? (m.qualifier ?? "") + m.value
+                                    ? (m.qualifier ?? "") + formatMeasure(m.value)
                                     : (m.text_value ?? "Not reported")}
                                 </td>
                                 <td>{m.unit ?? "—"}</td>
-                                <td>{m.filename}</td>
+                                <td className="file-name">{m.filename}</td>
                                 <td>
                                   {m.source_row ?? "—"}
                                   {m.page_number != null

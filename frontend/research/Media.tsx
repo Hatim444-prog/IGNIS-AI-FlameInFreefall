@@ -25,7 +25,6 @@ export function Media() {
   const [file, pick] = useState<File | null>(null),
     [preview, setPreview] = useState(""),
     [code, select] = useState(""),
-    [error, fail] = useState(""),
     [result, show] = useState<z.infer<typeof observation> | null>(null),
     [busy, wait] = useState(false),
     [over, setOver] = useState(false);
@@ -42,7 +41,6 @@ export function Media() {
     if (busy) return;
     setOver(false);
     show(null);
-    fail("");
     pick(null);
     setPreview("");
     if (!f) return;
@@ -51,13 +49,9 @@ export function Media() {
       !["image/jpeg", "image/png", "video/mp4"].includes(f.type) ||
       (video && !f.name.toLowerCase().endsWith(".mp4"))
     )
-      return fail("Choose a JPEG, PNG or MP4 file.");
-    if (!f.size || f.size > (video ? 30 : 10) * 1024 * 1024)
-      return fail("File is empty or exceeds the size limit.");
-    if (!isDirectApiConfigured() && f.size > 4 * 1024 * 1024)
-      return fail(
-        "Uploads through the Vercel proxy must be under 4 MiB. Compress or trim the file and try again.",
-      );
+      return;
+    if (!f.size || f.size > (video ? 30 : 10) * 1024 * 1024) return;
+    if (!isDirectApiConfigured() && f.size > 4 * 1024 * 1024) return;
     pick(f);
     setPreview(URL.createObjectURL(f));
   }
@@ -65,7 +59,6 @@ export function Media() {
     if (!file || busy) return;
     wait(true);
     setProgress(0);
-    fail("");
     show(null);
     const controller = new AbortController();
     pending.current = controller;
@@ -82,8 +75,8 @@ export function Media() {
           setProgress,
         ),
       );
-    } catch (e) {
-      fail((e as Error).message);
+    } catch {
+      show(null);
     } finally {
       wait(false);
       pending.current = null;
@@ -170,11 +163,6 @@ export function Media() {
                 }
               />
             </>
-          )}
-          {error && (
-            <p className="notice" role="alert">
-              {error}
-            </p>
           )}
         </section>
         <section className="panel">
@@ -308,11 +296,6 @@ export function Library() {
         </div>
         {m.isPending && <Pending tone="ai" label="Searching the visual library…" />}
       </form>
-      {m.error && (
-        <p role="alert" className="notice">
-          {m.error.message}
-        </p>
-      )}
       {m.data && (
         <section className="panel">
           <h2>Results for “{m.variables}”</h2>

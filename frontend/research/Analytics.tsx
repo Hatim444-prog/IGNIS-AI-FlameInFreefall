@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -52,8 +52,20 @@ function csv(rows: Evidence[]) {
     "text/csv",
   );
 }
+function useNarrow() {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 720px)");
+    const apply = () => setNarrow(query.matches);
+    apply();
+    query.addEventListener("change", apply);
+    return () => query.removeEventListener("change", apply);
+  }, []);
+  return narrow;
+}
 function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
   const [axis, setAxis] = useState("experiment");
+  const narrow = useNarrow();
   const figure = useRef<HTMLDivElement>(null);
   const dimensions = [
     ["oxygen_percent", "Oxygen (%)"],
@@ -104,7 +116,7 @@ function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
         dataKey="value"
         name="Measurement"
         unit={" " + unit}
-        width={85}
+        width={narrow ? 56 : 72}
         tick={chartTick}
       />
       <Tooltip
@@ -142,20 +154,22 @@ function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
       </dl>
       {n > 1 && n <= 80 ? (
         <>
-          <label>
-            Horizontal axis
-            <select
-              value={active?.[0] || "experiment"}
-              onChange={(e) => setAxis(e.target.value)}
-            >
-              <option value="experiment">Recorded observation</option>
-              {available.map(([key, title]) => (
-                <option key={key} value={key}>
-                  {title}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="catalog-toolbar">
+            <label className="sort-select">
+              Horizontal axis
+              <select
+                value={active?.[0] || "experiment"}
+                onChange={(e) => setAxis(e.target.value)}
+              >
+                <option value="experiment">Recorded observation</option>
+                {available.map(([key, title]) => (
+                  <option key={key} value={key}>
+                    {title}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           <div className="plot" ref={figure}>
             <ResponsiveContainer width="100%" height="100%">
               {active ? (
@@ -174,14 +188,16 @@ function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
                 <BarChart data={points}>
                   <CartesianGrid vertical={false} stroke="#344357" />
                   <XAxis dataKey="name" hide={n > 6} tick={chartTick} />
-                  <YAxis width={70} tick={chartTick} />
+                  <YAxis width={narrow ? 48 : 64} tick={chartTick} />
                   <Tooltip contentStyle={chartTip} />
                   <Bar dataKey="value" fill="#ff8738" unit={" " + unit}>
                     {points.some((p) => p.uncertainty != null) && (
                       <ErrorBar dataKey="uncertainty" stroke="#ffc76b" />
                     )}
                   </Bar>
-                  {points.length > 12 && <Brush dataKey="name" height={18} />}
+                  {points.length > 12 && (
+                    <Brush dataKey="name" height={narrow ? 28 : 22} />
+                  )}
                 </BarChart>
               )}
             </ResponsiveContainer>
@@ -236,8 +252,8 @@ export default function Analytics() {
         Compare observations by variable and original unit. Each bar represents
         one recorded measurement.
       </Header>
-      <div className="tool-split">
-        <section className="panel">
+      <div className="tool-split compare-split">
+        <section className="panel compare-form">
           <h2>Comparison</h2>
           <State query={v} />
           <label>
@@ -260,6 +276,13 @@ export default function Analytics() {
           </p>
           {codes.length > 25 && (
             <p role="alert">Select at most 25 runs for one comparison.</p>
+          )}
+          {codes.length > 0 && (
+            <ul className="weight-list" aria-label="Selected experiments">
+              {codes.map((code) => (
+                <li key={code}>{code}</li>
+              ))}
+            </ul>
           )}
           {!codes.length && (
             <p className="muted">
@@ -287,14 +310,9 @@ export default function Analytics() {
         </section>
         <section className="panel scope-panel" aria-labelledby="compare-runs">
           <h2 id="compare-runs">Experiments</h2>
-          <Picker />
+          <Picker startOpen />
         </section>
       </div>
-      {m.error && (
-        <p role="alert" className="notice">
-          {m.error.message}
-        </p>
-      )}
       {m.data && (
         <>
           <section className="panel">

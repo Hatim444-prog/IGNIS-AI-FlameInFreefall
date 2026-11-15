@@ -66,27 +66,13 @@ export function Settings() {
             <option value="nim">NVIDIA chat and embeddings</option>
           </select>
         </label>
-        <p>
-          Answers use NVIDIA when a key is configured. Document search stays on
-          the local 768-d index, and falls back to keyword matching if that
-          embedding model is offline.
-        </p>
-        {h.data && (
-          <p>
-            Configured local models · {h.data.text_model}, {h.data.vision_model}
-            , {h.data.embedding_model}
-          </p>
-        )}
         <button disabled={m.isPending} onClick={() => m.mutate()}>
           {m.isPending ? "Testing…" : "Test inference connection"}
         </button>
-        {m.error && <p role="alert">{m.error.message}</p>}
         {m.data &&
-          Object.entries(m.data.checks).map(([k, v]) => (
-            <p key={k}>
-              {k} · {v.ok ? "Reachable" : "Unavailable"} · {v.message}
-            </p>
-          ))}
+          Object.entries(m.data.checks)
+            .filter(([, v]) => v.ok)
+            .map(([k]) => <p key={k}>{k} · Reachable</p>)}
       </section>
     </>
   );

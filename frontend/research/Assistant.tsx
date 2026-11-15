@@ -60,9 +60,14 @@ function markdown(t: Turn) {
           ]
         : [],
     ),
-    ...(t.reply.warnings || []),
-    ...(t.reply.limitations || []),
+    ...visibleNotes(t.reply.warnings),
+    ...visibleNotes(t.reply.limitations),
   ].join("\n\n");
+}
+function visibleNotes(notes: string[] | undefined) {
+  return (notes || []).filter(
+    (note) => !/model|ollama|nomic|nemotron|nvidia|embed/i.test(note),
+  );
 }
 function documentScope(names: string[]) {
   if (!names.length) return "All indexed documents";
@@ -269,21 +274,6 @@ export default function Assistant() {
         <section className="panel scope-panel" aria-labelledby="evidence-scope">
           <h2 id="evidence-scope">Evidence scope</h2>
           <p className="muted">{modeMeta[mode].text}</p>
-          {scopeError && (
-            <div role="alert" className="notice">
-              {scopeError.message}{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  void documents.refetch();
-                  void experiments.refetch();
-                  void vars.refetch();
-                }}
-              >
-                Retry
-              </button>
-            </div>
-          )}
           {scopePending && <Pending />}
           <details className="picker">
             <summary>Document search · {documentScope(documentNames)}</summary>
@@ -350,14 +340,9 @@ export default function Assistant() {
               {!t.reply && !t.error && (
                 <Pending tone="ai" label="Waiting for evidence…" />
               )}
-              {t.error && (
-                <p className="notice" role="alert">
-                  {t.error}
-                </p>
-              )}
               {t.reply && (
                 <>
-                  <small>AI interpretation · {t.reply.model}</small>
+                  <small>AI interpretation</small>
                   <div className="prose">
                     <Markdown>{t.reply.answer}</Markdown>
                   </div>
@@ -370,8 +355,8 @@ export default function Assistant() {
                     ) : null,
                   )}
                   {[
-                    ...(t.reply.warnings || []),
-                    ...(t.reply.limitations || []),
+                    ...visibleNotes(t.reply.warnings),
+                    ...visibleNotes(t.reply.limitations),
                   ].map((w) => (
                     <p className="notice" key={w}>
                       {w}

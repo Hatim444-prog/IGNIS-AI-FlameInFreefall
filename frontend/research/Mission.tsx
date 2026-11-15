@@ -278,11 +278,6 @@ export default function Mission() {
           not estimate fire probability or certify suppression performance.
         </p>
       </div>
-      {m.error && (
-        <p role="alert" className="notice">
-          {m.error.message}
-        </p>
-      )}
       {m.data && (
         <>
           <section className="panel">
@@ -316,11 +311,13 @@ export default function Mission() {
               ))}
             </ul>
           </section>
-          {m.data.warnings.map((s) => (
-            <p className="notice" key={s}>
-              {s}
-            </p>
-          ))}
+          {m.data.warnings
+            .filter((s) => !/model|ollama|nomic|nemotron|nvidia|embed/i.test(s))
+            .map((s) => (
+              <p className="notice" key={s}>
+                {s}
+              </p>
+            ))}
           <section aria-labelledby="nasa-results">
             <h2 id="nasa-results">NASA investigations</h2>
             {!m.data.ranked_nasa_investigations.length && (

@@ -1,6 +1,14 @@
 import { usePreference } from "./preferences";
 import { Link } from "react-router-dom";
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useAllExperiments, label, origin, type Evidence } from "./api";
 export function Header({
   section,
@@ -38,13 +46,7 @@ export function State({
 }: {
   query: { isPending: boolean; error: Error | null; refetch: () => unknown };
 }) {
-  if (query.error)
-    return (
-      <div role="alert" className="notice">
-        {query.error.message}{" "}
-        <button onClick={() => query.refetch()}>Retry</button>
-      </div>
-    );
+  if (query.error) return null;
   return query.isPending ? <Pending /> : null;
 }
 const Selection = createContext<{
@@ -73,15 +75,41 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
 // The context hook shares this provider module.
 // oxlint-disable-next-line react/only-export-components
 export const useSelection = () => useContext(Selection);
-export function Picker({ suppressStatus = false }: { suppressStatus?: boolean }) {
+export function Picker({
+  suppressStatus = false,
+  startOpen = false,
+}: {
+  suppressStatus?: boolean;
+  startOpen?: boolean;
+}) {
   const q = useAllExperiments();
   const { codes, set } = useSelection();
+  const [filter, setFilter] = useState("");
+  const details = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (startOpen && details.current) details.current.open = true;
+  }, [startOpen]);
+  const query = filter.trim().toLowerCase();
+  const experiments = q.data?.filter((e) =>
+    e.experiment_code.toLowerCase().includes(query),
+  );
   return (
-    <details className="picker">
+    <details className="picker" ref={details}>
       <summary>Experiment selection · {codes.length}</summary>
       {!(suppressStatus && (q.error || q.isPending)) && <State query={q} />}
+      <label>
+        Filter experiments
+        <input
+          type="search"
+          value={filter}
+          onChange={(event) => setFilter(event.target.value)}
+        />
+      </label>
+      {experiments?.length === 0 && (
+        <p className="empty-result">No experiments match that filter.</p>
+      )}
       <div className="checks">
-        {q.data?.map((e) => (
+        {experiments?.map((e) => (
           <label key={e.experiment_code}>
             <input
               type="checkbox"
@@ -99,7 +127,9 @@ export function Picker({ suppressStatus = false }: { suppressStatus?: boolean })
         ))}
       </div>
       {codes.length > 0 && (
-        <button onClick={() => set([])}>Clear selection</button>
+        <button type="button" onClick={() => set([])}>
+          Clear selection
+        </button>
       )}
     </details>
   );

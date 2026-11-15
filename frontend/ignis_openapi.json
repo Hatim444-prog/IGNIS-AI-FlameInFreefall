@@ -873,6 +873,46 @@
           }
         }
       }
+    },
+    "/ai/vision/observations/{observation_id}/media": {
+      "get": {
+        "tags": [
+          "IGNIS Stage 4 \u2014 Multimodal RAG"
+        ],
+        "summary": "Observation Media",
+        "operationId": "observation_media_ai_vision_observations__observation_id__media_get",
+        "parameters": [
+          {
+            "name": "observation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Observation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

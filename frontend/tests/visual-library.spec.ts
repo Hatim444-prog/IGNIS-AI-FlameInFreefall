@@ -25,6 +25,10 @@ test("live visual search responds through the frontend proxy", async ({
     await expect(
       page.getByText("No saved visual observations yet."),
     ).toBeVisible();
+  } else {
+    const preview = page.locator("article.sample img").first();
+    await expect(preview).toBeVisible();
+    await expect.poll(() => preview.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
   }
   await expect(page.getByRole("alert")).toHaveCount(0);
   await page.screenshot({
@@ -132,11 +136,7 @@ test("visual library displays descriptions, review and source status, linkage, a
       .getByRole("link", { name: "ZARM-147", exact: true }),
   ).toHaveAttribute("href", "/experiments/ZARM-147");
   await expect(page.getByText("No experiment linked.")).toBeVisible();
-  await expect(
-    page.getByText(
-      "Semantic search unavailable. Showing keyword matches instead.",
-    ),
-  ).toBeVisible();
+  await expect(page.getByText("Semantic search unavailable. Showing keyword matches instead.")).toHaveCount(0);
   await page.getByLabel("Review status").selectOption("reviewed");
   await expect(
     page.getByRole("heading", { name: "flame.png", exact: true }),

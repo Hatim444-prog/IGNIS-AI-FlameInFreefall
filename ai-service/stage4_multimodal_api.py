@@ -21,6 +21,7 @@ import numpy as np
 import psycopg
 from dotenv import load_dotenv
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from starlette.datastructures import Headers
 
@@ -173,7 +174,7 @@ def _keyword_visual(question: str, limit: int, experiment_codes: list[str] | Non
         return conn.execute(
             f"""SELECT v.id AS observation_id, v.description, v.analysis_type,
                        v.model_name, v.review_status,
-                       s.filename, s.source_url, s.verification_status,
+                       s.filename, s.file_type AS media_type, s.source_url, s.verification_status,
                        e.experiment_code, i.code AS investigation_code,
                        NULL AS similarity
                 FROM visual_observations v
@@ -203,7 +204,7 @@ def find_visual_evidence(question: str, limit: int = 4, experiment_codes: list[s
         return conn.execute(
             f"""SELECT v.id AS observation_id, v.description, v.analysis_type,
                        v.model_name, v.review_status,
-                       s.filename, s.source_url, s.verification_status,
+                       s.filename, s.file_type AS media_type, s.source_url, s.verification_status,
                        e.experiment_code, i.code AS investigation_code,
                        1 - (v.embedding <=> %s) AS similarity
                 FROM visual_observations v
@@ -304,12 +305,33 @@ def build_stage4_router(search_documents: Callable) -> APIRouter:
         except psycopg.Error as exc:
             raise HTTPException(503, "Visual evidence search is unavailable. Check the scientific database and retry.") from exc
         warning = consume_retrieval_note()
+        for row in rows:
+            row["media_url"] = f"/ai/vision/observations/{row['observation_id']}/media"
         return {
             "query": q.strip(), "results": rows, "total_observations": total,
             "search_mode": "empty" if not total else "keyword" if warning else "semantic",
             "warnings": [warning] if warning else [],
             "note": "Visual descriptions are AI-generated and may be unreviewed. Experiment links are supplied by uploaders.",
         }
+
+    @router.get("/ai/vision/observations/{observation_id}/media")
+    def observation_media(observation_id: int):
+        with connect_db() as conn:
+            row = conn.execute(
+                """SELECT s.local_path, s.filename FROM visual_observations v
+                   JOIN sources s ON s.id = v.source_id WHERE v.id = %s""",
+                (observation_id,),
+            ).fetchone()
+        if not row or not row["local_path"]:
+            raise HTTPException(404, "Saved media not found")
+        path = (ROOT / row["local_path"]).resolve()
+        if not path.is_relative_to(MEDIA_DIR.resolve()):
+            raise HTTPException(404, "Saved media not found")
+        media_types = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".mp4": "video/mp4"}
+        media_type = media_types.get(path.suffix.lower())
+        if not path.is_file() or not media_type:
+            raise HTTPException(404, "Saved media not found")
+        return FileResponse(path, media_type=media_type, filename=row["filename"], content_disposition_type="inline")
 
     @router.post("/ai/ask-multimodal")
     def ask_multimodal(request: MultiQuestion):

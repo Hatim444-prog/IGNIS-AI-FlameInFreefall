@@ -43,6 +43,7 @@ export async function handleAiProxy(req, res, options) {
   const headers = new Headers();
   const content = req.headers["content-type"];
   if (content) headers.set("content-type", String(content));
+  if (req.headers.range) headers.set("range", String(req.headers.range));
 
   const mode = req.headers["x-ignis-mode"];
   if (mode === "ollama" || mode === "nim" || mode === "nim-mixed") {
@@ -82,6 +83,15 @@ export async function handleAiProxy(req, res, options) {
       upstream.headers.get("content-type") || "application/json",
     );
     res.setHeader("Cache-Control", "no-store");
+    for (const name of [
+      "content-length",
+      "content-range",
+      "accept-ranges",
+      "content-disposition",
+    ]) {
+      const value = upstream.headers.get(name);
+      if (value) res.setHeader(name, value);
+    }
     if (upstream.body) {
       const reader = upstream.body.getReader();
       while (true) {

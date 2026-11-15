@@ -34,11 +34,21 @@ class VisualSearchTest(unittest.TestCase):
     def test_embedding_failure_is_disclosed_as_keyword_search(self):
         conn = MagicMock()
         conn.__enter__.return_value.execute.return_value.fetchone.return_value = {"count": 1}
-        with patch.object(visual, "connect_db", return_value=conn), patch.object(visual, "_visual_embedding", side_effect=InferenceError("offline")), patch.object(visual, "_keyword_visual", return_value=[{"filename": "flame.png"}]):
+        with patch.object(visual, "connect_db", return_value=conn), patch.object(visual, "_visual_embedding", side_effect=InferenceError("offline")), patch.object(visual, "_keyword_visual", return_value=[{"observation_id": 1, "filename": "flame.png"}]):
             result = search_endpoint()("flame", 10)
         self.assertEqual(result["search_mode"], "keyword")
         self.assertEqual(result["warnings"], [visual.VISUAL_KEYWORD_NOTE])
         self.assertEqual(result["results"][0]["filename"], "flame.png")
+
+    def test_media_endpoint_rejects_paths_outside_saved_media(self):
+        router = visual.build_stage4_router(lambda *args: [])
+        endpoint = next(route.endpoint for route in router.routes if route.path.endswith("/{observation_id}/media"))
+        conn = MagicMock()
+        conn.__enter__.return_value.execute.return_value.fetchone.return_value = {"local_path": "../.env", "filename": "image.jpg"}
+        with patch.object(visual, "connect_db", return_value=conn):
+            with self.assertRaises(HTTPException) as error:
+                endpoint(1)
+        self.assertEqual(error.exception.status_code, 404)
 
     def test_invalid_queries_and_limits_are_rejected(self):
         for query, limit in [(" ", 10), ("x" * 1501, 10), ("flame", 0), ("flame", 11)]:

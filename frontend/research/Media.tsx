@@ -5,7 +5,7 @@ import { ArrowRight, ScanLine } from "lucide-react";
 import type { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { Header, State, EvidenceCards, Pending, RunLink } from "./common";
-import { isDirectApiConfigured } from "../src/lib/inference.js";
+import { getApiBase, isDirectApiConfigured } from "../src/lib/inference.js";
 import {
   request,
   observation,
@@ -348,15 +348,10 @@ export function Library() {
             <p role="status">
               {m.data.search_mode === "semantic"
                 ? "Semantic similarity search"
-                : "Keyword search · semantic search unavailable"}{" "}
+                : "Keyword search"}{" "}
               · {rows.length} returned
             </p>
           )}
-          {m.data.warnings?.map((warning) => (
-            <p key={warning} className="notice" role="status">
-              {warning}
-            </p>
-          ))}
           {m.data.note && <p className="muted">{m.data.note}</p>}
           {rows.length > 0 && (
             <>
@@ -408,6 +403,28 @@ export function Library() {
                 key={String(row.observation_id ?? index)}
               >
                 <h3>{String(row.filename ?? "Visual observation")}</h3>
+                {typeof row.media_url === "string" &&
+                  row.media_url.startsWith("/ai/vision/observations/") && (
+                    <div className="stage">
+                      {row.media_type === "video" ? (
+                        <video
+                          className="preview"
+                          controls
+                          preload="metadata"
+                          src={getApiBase() + row.media_url}
+                        />
+                      ) : (
+                        <img
+                          className="preview"
+                          loading="lazy"
+                          src={getApiBase() + row.media_url}
+                          alt={String(
+                            row.filename ?? "Saved visual observation",
+                          )}
+                        />
+                      )}
+                    </div>
+                  )}
                 <p>{String(row.description ?? "No description available.")}</p>
                 <p>
                   Review:{" "}

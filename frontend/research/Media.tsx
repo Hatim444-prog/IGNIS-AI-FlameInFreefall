@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, ScanLine } from "lucide-react";
 import type { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { Header, State, EvidenceCards, Pending } from "./common";
+import { Header, State, EvidenceCards, Pending, RunLink } from "./common";
 import { isDirectApiConfigured } from "../src/lib/inference.js";
 import {
   request,
@@ -29,6 +29,8 @@ export function Media() {
     [busy, wait] = useState(false),
     [over, setOver] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [error, setError] = useState("");
+  const direct = isDirectApiConfigured();
   const pending = useRef<AbortController | null>(null);
   useEffect(() => () => pending.current?.abort(), []);
   useEffect(
@@ -40,24 +42,36 @@ export function Media() {
   function choose(f?: File) {
     if (busy) return;
     setOver(false);
-    show(null);
-    pick(null);
-    setPreview("");
-    if (!f) return;
+    setError("");
+    if (!f) {
+      show(null);
+      pick(null);
+      setPreview("");
+      return;
+    }
     const video = f.type === "video/mp4";
     if (
       !["image/jpeg", "image/png", "video/mp4"].includes(f.type) ||
       (video && !f.name.toLowerCase().endsWith(".mp4"))
-    )
+    ) {
+      setError("Choose a JPEG, PNG, or MP4 file.");
       return;
-    if (!f.size || f.size > (video ? 30 : 10) * 1024 * 1024) return;
-    if (!isDirectApiConfigured() && f.size > 4 * 1024 * 1024) return;
+    }
+    const maxMiB = direct ? (video ? 30 : 10) : 4;
+    if (!f.size || f.size > maxMiB * 1024 * 1024) {
+      setError(
+        `Choose a non-empty file up to ${maxMiB} MiB for this connection.`,
+      );
+      return;
+    }
+    show(null);
     pick(f);
     setPreview(URL.createObjectURL(f));
   }
   async function analyze(save: boolean) {
     if (!file || busy) return;
     wait(true);
+    setError("");
     setProgress(0);
     show(null);
     const controller = new AbortController();
@@ -75,7 +89,12 @@ export function Media() {
           setProgress,
         ),
       );
-    } catch {
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Visual analysis failed. Please retry.",
+      );
       show(null);
     } finally {
       wait(false);
@@ -106,9 +125,13 @@ export function Media() {
             }}
           >
             <ScanLine size={22} strokeWidth={1.6} aria-hidden />
-            <strong>{file ? "Replace media" : "Drop media or choose a file"}</strong>
+            <strong>
+              {file ? "Replace media" : "Drop media or choose a file"}
+            </strong>
             <span className="muted">
-              JPEG or PNG up to 10 MiB · MP4 up to 30 MiB
+              {direct
+                ? "JPEG or PNG up to 10 MiB · MP4 up to 30 MiB"
+                : "JPEG, PNG, or MP4 up to 4 MiB"}
             </span>
             <input
               type="file"
@@ -121,6 +144,7 @@ export function Media() {
               }}
             />
           </label>
+          {error && <p role="alert">{error}</p>}
           {preview && file && (
             <div className="stage">
               {file.type === "video/mp4" ? (
@@ -138,7 +162,8 @@ export function Media() {
             <p className="file-meta">
               {file.name}
               <span>
-                {file.type === "video/mp4" ? "MP4" : "Image"} · {formatSize(file.size)}
+                {file.type === "video/mp4" ? "MP4" : "Image"} ·{" "}
+                {formatSize(file.size)}
               </span>
             </p>
           )}
@@ -251,7 +276,8 @@ export function Media() {
 }
 export function Library() {
   const [query, edit] = useState(""),
-    [filter, select] = useState("");
+    [filter, select] = useState(""),
+    [review, setReview] = useState("");
   const m = useMutation({
     mutationFn: (q: string) =>
       request(
@@ -262,7 +288,11 @@ export function Library() {
       ),
   });
   const rows = m.data?.results || [];
-  const shown = rows.filter((r) => !filter || r.verification_status === filter);
+  const shown = rows.filter(
+    (r) =>
+      (!filter || r.verification_status === filter) &&
+      (!review || r.review_status === review),
+  );
   return (
     <div className="tool">
       <Header section="Library" title="Visual evidence">
@@ -274,6 +304,7 @@ export function Library() {
         onSubmit={(e) => {
           e.preventDefault();
           select("");
+          setReview("");
           m.mutate(query.trim());
         }}
       >
@@ -294,32 +325,128 @@ export function Library() {
           </button>
           <Link to="/media">Analyze media →</Link>
         </div>
-        {m.isPending && <Pending tone="ai" label="Searching the visual library…" />}
+        {m.isPending && (
+          <Pending tone="ai" label="Searching the visual library…" />
+        )}
+        {m.error && (
+          <div role="alert">
+            <p>Could not search visual evidence. {m.error.message}</p>
+            <button
+              type="button"
+              onClick={() => m.mutate(query.trim())}
+              disabled={!query.trim() || m.isPending}
+            >
+              Retry search
+            </button>
+          </div>
+        )}
       </form>
       {m.data && (
         <section className="panel">
           <h2>Results for “{m.variables}”</h2>
-          <label>
-            Verification
-            <select value={filter} onChange={(e) => select(e.target.value)}>
-              <option value="">All statuses</option>
-              {[
-                ...new Set(
-                  rows.flatMap((r) =>
-                    typeof r.verification_status === "string"
-                      ? [r.verification_status]
-                      : [],
-                  ),
-                ),
-              ].map((v) => (
-                <option key={v}>{v}</option>
-              ))}
-            </select>
-          </label>
+          {m.data.search_mode && m.data.search_mode !== "empty" && (
+            <p role="status">
+              {m.data.search_mode === "semantic"
+                ? "Semantic similarity search"
+                : "Keyword search · semantic search unavailable"}{" "}
+              · {rows.length} returned
+            </p>
+          )}
+          {m.data.warnings?.map((warning) => (
+            <p key={warning} className="notice" role="status">
+              {warning}
+            </p>
+          ))}
+          {m.data.note && <p className="muted">{m.data.note}</p>}
+          {rows.length > 0 && (
+            <>
+              <label>
+                Verification
+                <select value={filter} onChange={(e) => select(e.target.value)}>
+                  <option value="">All statuses</option>
+                  {[
+                    ...new Set(
+                      rows.flatMap((r) =>
+                        typeof r.verification_status === "string"
+                          ? [r.verification_status]
+                          : [],
+                      ),
+                    ),
+                  ].map((v) => (
+                    <option key={v}>{v}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Review status
+                <select
+                  value={review}
+                  onChange={(e) => setReview(e.target.value)}
+                >
+                  <option value="">All review statuses</option>
+                  {[
+                    ...new Set(
+                      rows.flatMap((r) =>
+                        typeof r.review_status === "string"
+                          ? [r.review_status]
+                          : [],
+                      ),
+                    ),
+                  ].map((status) => (
+                    <option value={status} key={status}>
+                      {status.replaceAll("_", " ")}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
+          )}
           {shown.length ? (
-            <EvidenceCards rows={shown} />
+            shown.map((row, index) => (
+              <article
+                className="sample"
+                key={String(row.observation_id ?? index)}
+              >
+                <h3>{String(row.filename ?? "Visual observation")}</h3>
+                <p>{String(row.description ?? "No description available.")}</p>
+                <p>
+                  Review:{" "}
+                  {String(row.review_status ?? "Unknown").replaceAll("_", " ")}{" "}
+                  · Source verification:{" "}
+                  {String(row.verification_status ?? "Unknown")}
+                </p>
+                <p>
+                  {row.experiment_code ? (
+                    <>
+                      Linked experiment:{" "}
+                      <RunLink code={String(row.experiment_code)} /> ·
+                      Uploader-supplied association
+                    </>
+                  ) : (
+                    "No experiment linked."
+                  )}
+                </p>
+                <EvidenceCards rows={[row]} />
+              </article>
+            ))
+          ) : m.data.total_observations === 0 ? (
+            <div className="empty-result">
+              <p>No saved visual observations yet.</p>
+              <p>
+                Upload an image or video in the Media laboratory and choose
+                “Analyze and save” to make its description searchable. “Analyze
+                only” does not add it to this library.
+              </p>
+              <Link className="action primary" to="/media">
+                Add visual evidence
+              </Link>
+            </div>
           ) : (
-            <p className="empty-result">No matching visual observations.</p>
+            <p className="empty-result">
+              {rows.length
+                ? "No observations match these status filters."
+                : "No matching visual observations."}
+            </p>
           )}
         </section>
       )}

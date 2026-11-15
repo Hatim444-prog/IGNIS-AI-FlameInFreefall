@@ -51,7 +51,13 @@ export const observation = z.object({
   approx_timestamps_s: z.array(z.number()).optional(),
   persisted_to_database: z.boolean(),
 });
-export const visuals = z.object({ results: z.array(evidence) });
+export const visuals = z.object({
+  results: z.array(evidence),
+  total_observations: z.number().optional(),
+  search_mode: z.enum(["semantic", "keyword", "empty"]).optional(),
+  warnings: z.array(z.string()).optional(),
+  note: z.string().optional(),
+});
 type Path = keyof paths;
 type JsonBody<P extends Path> = paths[P] extends {
   post: { requestBody: { content: { "application/json": infer B } } };

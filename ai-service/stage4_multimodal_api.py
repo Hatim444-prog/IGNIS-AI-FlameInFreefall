@@ -13,6 +13,7 @@ import hashlib
 import io
 import json
 import re
+from dataclasses import replace
 from pathlib import Path
 from typing import Callable
 
@@ -24,8 +25,8 @@ from pydantic import BaseModel, Field
 from starlette.datastructures import Headers
 
 from db_config import connect_db as _connect_db
+from inference_context import get_inference_config
 from llm_client import (
-    KEYWORD_RETRIEVAL_NOTE,
     InferenceError,
     active_model,
     chat as llm_chat,
@@ -43,6 +44,10 @@ ROOT = Path(__file__).resolve().parent
 load_dotenv(ROOT.parent / ".env")
 load_dotenv(ROOT / ".env", override=False)
 MEDIA_DIR = ROOT / "data" / "visual"
+VISUAL_KEYWORD_NOTE = (
+    "Semantic search is unavailable because the local Nomic embedding service could not be used. "
+    "Showing keyword matches instead. Start Ollama with nomic-embed-text to restore semantic search."
+)
 
 
 def connect_db():
@@ -54,9 +59,15 @@ def connect_db():
         raise HTTPException(503, "Scientific PostgreSQL database unavailable") from exc
 
 
+def _visual_embedding(text: str, task: str) -> np.ndarray:
+    # Stored visual vectors use Nomic's 768-dimensional space. A provider
+    # switch must not mix another model's vectors into this collection.
+    return embed_text(text, task=task, cfg=replace(get_inference_config(), embed_backend="ollama"))
+
+
 def _embed(text: str, task: str) -> np.ndarray:
     try:
-        return embed_text(text, task=task)
+        return _visual_embedding(text, task)
     except InferenceError as exc:
         raise HTTPException(503, str(exc)) from exc
 
@@ -163,12 +174,14 @@ def _keyword_visual(question: str, limit: int, experiment_codes: list[str] | Non
             f"""SELECT v.id AS observation_id, v.description, v.analysis_type,
                        v.model_name, v.review_status,
                        s.filename, s.source_url, s.verification_status,
-                       e.experiment_code,
-                       0.2 AS similarity
+                       e.experiment_code, i.code AS investigation_code,
+                       NULL AS similarity
                 FROM visual_observations v
                 JOIN sources s ON s.id = v.source_id
                 LEFT JOIN experiments e ON e.id = v.experiment_id
+                LEFT JOIN investigations i ON i.id = e.investigation_id
                 WHERE v.description IS NOT NULL AND ({like}) {clause}
+                ORDER BY v.id DESC
                 LIMIT %s""",
             params,
         ).fetchall()
@@ -176,9 +189,9 @@ def _keyword_visual(question: str, limit: int, experiment_codes: list[str] | Non
 
 def find_visual_evidence(question: str, limit: int = 4, experiment_codes: list[str] | None = None):
     try:
-        vector = embed_text(question, task="query")
+        vector = _visual_embedding(question, "query")
     except InferenceError:
-        set_retrieval_note(KEYWORD_RETRIEVAL_NOTE)
+        set_retrieval_note(VISUAL_KEYWORD_NOTE)
         return _keyword_visual(question, limit, experiment_codes)
     with connect_db() as conn:
         if experiment_codes:
@@ -191,11 +204,12 @@ def find_visual_evidence(question: str, limit: int = 4, experiment_codes: list[s
             f"""SELECT v.id AS observation_id, v.description, v.analysis_type,
                        v.model_name, v.review_status,
                        s.filename, s.source_url, s.verification_status,
-                       e.experiment_code,
+                       e.experiment_code, i.code AS investigation_code,
                        1 - (v.embedding <=> %s) AS similarity
                 FROM visual_observations v
                 JOIN sources s ON s.id = v.source_id
                 LEFT JOIN experiments e ON e.id = v.experiment_id
+                LEFT JOIN investigations i ON i.id = e.investigation_id
                 WHERE v.embedding IS NOT NULL {clause}
                 ORDER BY v.embedding <=> %s LIMIT %s""",
             params,
@@ -282,8 +296,20 @@ def build_stage4_router(search_documents: Callable) -> APIRouter:
     def search_visual(q: str, limit: int = 4):
         if not q.strip() or len(q) > 1500 or not (1 <= limit <= 10):
             raise HTTPException(422, "Provide a query and limit between 1 and 10")
-        return {"query": q, "results": find_visual_evidence(q, limit),
-                "note": "Visual descriptions are AI-generated and may be unreviewed."}
+        consume_retrieval_note()
+        try:
+            with connect_db() as conn:
+                total = conn.execute("SELECT COUNT(*) AS count FROM visual_observations").fetchone()["count"]
+            rows = find_visual_evidence(q.strip(), limit) if total else []
+        except psycopg.Error as exc:
+            raise HTTPException(503, "Visual evidence search is unavailable. Check the scientific database and retry.") from exc
+        warning = consume_retrieval_note()
+        return {
+            "query": q.strip(), "results": rows, "total_observations": total,
+            "search_mode": "empty" if not total else "keyword" if warning else "semantic",
+            "warnings": [warning] if warning else [],
+            "note": "Visual descriptions are AI-generated and may be unreviewed. Experiment links are supplied by uploaders.",
+        }
 
     @router.post("/ai/ask-multimodal")
     def ask_multimodal(request: MultiQuestion):

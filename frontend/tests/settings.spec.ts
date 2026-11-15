@@ -104,34 +104,25 @@ test("research defaults control explorer requests and the next assistant view", 
   );
 });
 
-test("provider failures and connection configuration have actionable feedback", async ({
-  page,
-}) => {
+test("settings contain only user controls", async ({ page }) => {
   await page.goto("/settings");
-  await page.getByLabel("Inference provider").selectOption("ollama");
-  await page.getByRole("button", { name: "Test inference connection" }).click();
-  await expect(page.getByText("Some services need attention")).toBeVisible();
-  await expect(page.getByText(/Local service is unavailable/)).toBeVisible();
-  await page
-    .getByLabel("API address")
-    .fill("https://user:password@example.com");
-  await page.getByRole("button", { name: "Apply connection" }).click();
-  await expect(page.getByRole("alert")).toContainText("without credentials");
-  await page.getByLabel("Inference provider").selectOption("nim-mixed");
-  const directRequest = page.waitForRequest(
-    (request) => request.url() === "http://127.0.0.1:8001/ai/health",
-  );
-  await page.getByLabel("API address").fill("http://127.0.0.1:8001");
-  await page.getByRole("button", { name: "Apply connection" }).click();
-  expect((await directRequest).headers()["x-ignis-chat-backend"]).toBe("nim");
-  expect(
-    await page.evaluate(() => localStorage.getItem("ignis_infer_mode")),
-  ).toBe("nim-mixed");
-  await expect
-    .poll(() => page.evaluate(() => localStorage.getItem("ignis_api_base")))
-    .toBe("http://127.0.0.1:8001");
-  await page.getByRole("button", { name: "Use default connection" }).click();
-  await expect(page.getByLabel("API address")).toHaveValue("");
+  await expect(
+    page.getByRole("heading", { name: "Appearance", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Research defaults", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Saved preferences", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByLabel("API address")).toHaveCount(0);
+  await expect(page.getByLabel("Inference provider")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Test inference connection" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText(/Ollama|NVIDIA|Nomic|FastAPI|proxy|embeddings/i),
+  ).toHaveCount(0);
 });
 
 test("settings are usable on mobile and in light mode", async ({ page }) => {

@@ -59,6 +59,14 @@ export const visuals = z.object({
   note: z.string().optional(),
 });
 type Path = keyof paths;
+function serviceError(status: number) {
+  if (status === 413) return "This file is too large. Choose a smaller file and try again.";
+  if (status === 415) return "This file type is not supported. Choose a JPEG, PNG, or MP4 file.";
+  if (status === 422) return "We couldn't use these entries. Check your selections and try again.";
+  if (status === 404) return "The requested research could not be found.";
+  if (status === 429) return "There are too many requests right now. Please wait a moment and try again.";
+  return "This feature is temporarily unavailable. Please try again shortly.";
+}
 type JsonBody<P extends Path> = paths[P] extends {
   post: { requestBody: { content: { "application/json": infer B } } };
 }
@@ -91,33 +99,22 @@ async function request<T>(
       throw new Error(
         timeout.aborted ? "Request timed out." : "Request cancelled.",
       );
-    throw new Error("Cannot reach IGNIS. Check the API connection and retry.");
+    throw new Error("Cannot connect to IGNIS. Check your connection and try again.");
   }
   const responseText = await response.text();
   let responseBody: unknown;
   try {
     responseBody = responseText ? JSON.parse(responseText) : null;
   } catch {
-    if (/^\s*<!doctype html\b/i.test(responseText))
-      throw new Error(
-        "The API route returned the frontend page. Check the deployed Vercel service routing.",
-      );
-    throw new Error("The backend returned an invalid response.");
+    throw new Error("We couldn't load these results. Please try again.");
   }
   if (!response.ok) {
-    const detail =
-      typeof responseBody === "object" &&
-      responseBody !== null &&
-      "detail" in responseBody &&
-      typeof responseBody.detail === "string"
-        ? responseBody.detail
-        : response.statusText;
-    throw new Error("HTTP " + response.status + " · " + detail);
+    throw new Error(serviceError(response.status));
   }
   const parsed = schema.safeParse(responseBody);
   if (!parsed.success)
     throw new Error(
-      "The backend returned an incomplete or unexpected response.",
+      "We couldn't load the complete results. Please try again.",
     );
   return parsed.data;
 }
@@ -160,14 +157,7 @@ export function uploadObservation(
     };
     xhr.onload = () => {
       if (xhr.status < 200 || xhr.status >= 300) {
-        reject(
-          new Error(
-            "HTTP " +
-              xhr.status +
-              " · " +
-              (xhr.response?.detail || xhr.statusText),
-          ),
-        );
+        reject(new Error(serviceError(xhr.status)));
         return;
       }
       const parsed = observation.safeParse(xhr.response);

@@ -54,7 +54,7 @@ test("empty, unavailable and recovered database responses", async ({
     }),
   );
   await page.goto("/experiments");
-  await expect(page.getByRole("main").getByRole("alert")).toContainText("503");
+  await expect(page.getByRole("main").getByRole("alert")).toContainText("temporarily unavailable");
   status = 200;
   await page.getByRole("button", { name: "Retry" }).click();
   await expect(page.getByText("No matching records.")).toBeVisible();
@@ -63,7 +63,7 @@ test("offline API and mobile navigation", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
   await page.route("**/ai/**", (r) => r.abort());
   await page.goto("/");
-  await expect(page.getByText("API offline")).toBeVisible();
+  await expect(page.getByText("Offline", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Open navigation" }).click();
   await page
     .getByRole("dialog")

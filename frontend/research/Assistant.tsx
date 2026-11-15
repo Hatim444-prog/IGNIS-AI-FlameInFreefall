@@ -64,7 +64,7 @@ function markdown(t: Turn) {
   ].join("\n\n");
 }
 function documentScope(names: string[]) {
-  if (!names.length) return "All indexed documents";
+  if (!names.length) return "All documents";
   if (names.length === 1) return names[0];
   return names.length + " documents";
 }

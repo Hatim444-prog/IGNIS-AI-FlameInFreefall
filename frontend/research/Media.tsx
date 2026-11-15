@@ -220,7 +220,7 @@ export function Media() {
               >
                 Analyze only
               </button>
-              <p id="analyze-only-hint">Does not write to the database.</p>
+              <p id="analyze-only-hint">View the analysis without saving it.</p>
             </div>
             <div>
               <button

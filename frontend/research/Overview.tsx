@@ -119,9 +119,9 @@ export default function Overview() {
           {q.data && !experiments.length && (
             <div className="dashboard-empty">
               <FlaskConical size={28} />
-              <p>No experiments indexed yet.</p>
+              <p>No experiments available yet.</p>
               <Link to="/settings">
-                Check data connection <ArrowRight size={14} />
+                Open settings <ArrowRight size={14} />
               </Link>
             </div>
           )}

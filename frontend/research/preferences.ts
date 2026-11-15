@@ -6,7 +6,6 @@ export const workspaceDefaults = {
   ignis_default_dataset: "curated",
   ignis_page_size: "12",
   ignis_assistant_mode: "Hybrid",
-  ignis_infer_mode: "nim-mixed",
 } as const;
 
 export function resetWorkspacePreferences() {

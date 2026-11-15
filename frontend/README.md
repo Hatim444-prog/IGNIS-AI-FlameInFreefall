@@ -28,7 +28,7 @@ Legacy `/measurements`, `/vision` and `/mission` URLs redirect to `/analytics`, 
 
 ## Contract and checks
 
-Settings saves browser-local preferences for dark/light/system appearance, sidebar layout, reduced motion, the explorer's default collection and page size, the assistant's initial mode, and the inference provider. Changes apply to the relevant views. The page also provides service diagnostics, development-only direct API connection controls, selection clearing, and a preference reset that keeps saved research and the current selection.
+Settings saves browser-local preferences for dark/light/system appearance, sidebar layout, reduced motion, the explorer's default collection and page size, and the assistant's initial mode. Changes apply to the relevant views. Users can clear their selection or reset preferences while keeping saved research. Provider configuration, API addresses, and service diagnostics are not exposed in the user interface. Errors use plain-language recovery messages, and evidence cards omit internal model, identifier, and storage fields.
 
 The included ignis_openapi.json was exported from the installed FastAPI app. Refresh it after changing the backend. From the repository root run the following while FastAPI is online.
 

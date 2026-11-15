@@ -193,7 +193,10 @@ export function EvidenceCards({ rows }: { rows: Evidence[] }) {
               })}
             </p>
           )}
-          <Fields row={r} />
+          <Fields row={Object.fromEntries(Object.entries(r).filter(([key]) => ![
+            "observation_id", "source_id", "experiment_id", "model", "model_name",
+            "embedding", "local_path", "sha256", "media_url", "media_type",
+          ].includes(key)))} />
         </details>
       ))}
     </div>

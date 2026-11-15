@@ -70,7 +70,7 @@ test("visual library distinguishes an empty collection and search failures", asy
   await page
     .getByRole("button", { name: "Search library", exact: true })
     .click();
-  await expect(page.getByRole("alert")).toContainText("Database unavailable");
+  await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
   fail = false;
   await page.getByRole("button", { name: "Retry search" }).click();
   await expect(page.getByRole("alert")).toHaveCount(0);
@@ -97,6 +97,8 @@ test("visual library displays descriptions, review and source status, linkage, a
           {
             observation_id: 1,
             filename: "flame.png",
+            model_name: "internal-model-name",
+            local_path: "internal/storage/path.png",
             description: "A spherical blue flame.",
             review_status: "pending_review",
             verification_status: "unverified",
@@ -136,6 +138,8 @@ test("visual library displays descriptions, review and source status, linkage, a
       .getByRole("link", { name: "ZARM-147", exact: true }),
   ).toHaveAttribute("href", "/experiments/ZARM-147");
   await expect(page.getByText("No experiment linked.")).toBeVisible();
+  await expect(page.getByText("internal-model-name", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("internal/storage/path.png", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Semantic search unavailable. Showing keyword matches instead.")).toHaveCount(0);
   await page.getByLabel("Review status").selectOption("reviewed");
   await expect(

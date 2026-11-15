@@ -220,17 +220,17 @@ You can also open an assistant question scoped to a particular document.
 
 This makes it easier to identify the evidence behind the research workflow and return to its original source.
 
-## 17. Service Settings
+## 17. Personal Settings
 
-*On screen: Show API and database checks, change the inference provider, and highlight the connection test.*
+*On screen: Change the theme, adjust research defaults, and show saved preferences.*
 
-Service settings provides separate checks for the API, scientific database, and configured AI services.
+Settings helps you personalize your research workspace.
 
-You can select local Ollama, NVIDIA chat with local embeddings, or NVIDIA chat and embeddings.
+Choose a dark or light theme, or follow your device. Keep the sidebar expanded or use compact icons, and reduce animation if you prefer less movement.
 
-Embeddings are numerical representations that help retrieve related passages and observations by meaning.
+Set your preferred research collection, number of experiments per page, and default assistant mode.
 
-The provider choice is saved in the browser, and a connection test checks the configured inference services.
+Preferences save automatically in this browser. You can clear your experiment shortlist or restore the default preferences while keeping saved research.
 
 ## 18. Workspace Controls
 
@@ -238,23 +238,11 @@ The provider choice is saved in the browser, and a connection test checks the co
 
 The workspace includes a collapsible desktop sidebar, a mobile navigation drawer, active-page indicators, and global experiment search.
 
-Control or Command plus K focuses the search field. Fullscreen controls provide more viewing space, while the API indicator shows the service connection state.
+Control or Command plus K focuses the search field. Fullscreen controls provide more viewing space, while the connection indicator shows whether the workspace is available.
 
 The layout adapts to smaller screens, and animation behavior accounts for reduced-motion preferences.
 
-## 19. Document and Data Import
-
-*On screen: Show a simple diagram or prepared view of documents becoming indexed passages and experiment records. This process uses maintenance scripts, not an import wizard in the main interface.*
-
-Behind the interface, import scripts bring experiment measurements and research documents into the database.
-
-Document processing extracts text, divides it into searchable passages, retains available page references, and creates embeddings for retrieval.
-
-Scanned documents can use optical character recognition when the required OCR resources are available.
-
-Source tracking includes filenames, original web addresses where supplied, verification status, and file checksums. Unchanged indexed passages can be reused during later imports.
-
-## 20. Closing
+## 19. Closing
 
 *On screen: Return to the dashboard, then show the IGNIS AI logo.*
 
@@ -285,7 +273,7 @@ IGNIS AI. Exploring fire in microgravity through scientific evidence.
 
 ## Production notes — not spoken
 
-- For a shorter product demo, omit the optional scoring passage and the document-import section, then shorten the explorer, chart, and settings descriptions.
+- For a shorter product demo, omit the optional scoring passage then shorten the explorer, chart, and settings descriptions.
 - Prepare a pair of experiments with shared measured variables before recording Data comparison.
 - Prepare a successful assistant answer and a saved visual observation for the evidence walkthrough.
 - Use actual indexed records for the demonstration. Label any illustrative or sample data clearly.

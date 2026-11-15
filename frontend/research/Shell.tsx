@@ -227,13 +227,13 @@ function Workspace({ children }: { children: ReactNode }) {
             <kbd>Ctrl K</kbd>
           </form>
           <div className="tools">
-            <Link to="/settings" className="status" title="View service status">
+            <Link to="/settings" className="status" title="Open settings">
               <i className={health.data ? "online" : ""} />
               {health.isPending
-                ? "Checking API"
+                ? "Connecting…"
                 : health.error
-                  ? "API offline"
-                  : "API online"}
+                  ? "Offline"
+                  : "Connected"}
             </Link>
 
             <button

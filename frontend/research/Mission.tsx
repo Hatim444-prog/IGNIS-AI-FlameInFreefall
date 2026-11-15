@@ -151,7 +151,7 @@ export default function Mission() {
   return (
     <div className="tool">
       <Header section="Mission research" title="Mission advisor">
-        Rank indexed studies against a scenario and inspect how much evidence
+        Find relevant studies for a scenario and inspect how much evidence
         supports each match.
       </Header>
       <form

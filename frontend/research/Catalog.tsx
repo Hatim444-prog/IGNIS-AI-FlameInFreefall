@@ -641,7 +641,7 @@ export function Investigations() {
   return (
     <>
       <Header section="Library" title="Investigations">
-        Browse indexed research documents and investigations with measured
+        Browse research documents and investigations with measured
         experiment runs.
       </Header>
       <DocumentCollection />

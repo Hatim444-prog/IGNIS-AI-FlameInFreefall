@@ -10,7 +10,7 @@ export default function DocumentCollection({ search = "" }: { search?: string })
     <div className="panel-heading"><h2>Research documents</h2><Link to="/sources">Browse sources →</Link></div>
     <State query={documents}/>
     {matches && <>
-      <p>{matches.length} {query ? "matching" : "indexed"} documents · Select a title to ask about its evidence.</p>
+      <p>{matches.length} {query ? "matching" : "available"} documents · Select a title to ask about its evidence.</p>
       <div className="actions file-links">{matches.map(d=><Link className="action file-name" key={d.filename} to={"/assistant?document="+encodeURIComponent(d.filename)}>{d.filename}</Link>)}</div>
     </>}
   </section>;

@@ -1,6 +1,7 @@
 "use client";
 import { Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
+import DocumentCollection from "./DocumentCollection";
 import { Header, State, RunLink, Fields, useSelection } from "./common";
 import {
   useExperimentPage,
@@ -126,15 +127,16 @@ export function Explorer() {
           </select>
         </label>
         <label>
-          Search experiments
+          Search runs and documents
           <input
             id="search"
             type="search"
-            placeholder="Experiment code, investigation or fuel"
+            placeholder="Experiment code, fuel or document name"
             value={filters.q || ""}
             onChange={(e) => change("q", e.target.value)}
           />
         </label>
+        <DocumentCollection search={filters.q} />
         <details className="picker">
           <summary>Filter conditions</summary>
           <div className="fields">
@@ -521,8 +523,10 @@ export function Investigations() {
   return (
     <>
       <Header section="Library" title="Investigations">
-        Live counters from the scientific database.
+        Browse indexed research documents and investigations with measured
+        experiment runs.
       </Header>
+      <DocumentCollection />
       <State query={q} />
       {q.data && !q.data.investigations.length && (
         <p>No investigations in the catalog.</p>

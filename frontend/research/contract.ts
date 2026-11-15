@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/ai/data/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Indexed Documents */
+        get: operations["indexed_documents_ai_data_documents_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ai/health": {
         parameters: {
             query?: never;
@@ -391,6 +408,8 @@ export interface components {
         };
         /** HybridQuestion */
         HybridQuestion: {
+            /** Document Names */
+            document_names?: string[];
             /** Question */
             question: string;
             /**
@@ -412,6 +431,19 @@ export interface components {
              * @default 4
              */
             top_k_papers: number;
+        };
+        /** IndexedDocument */
+        IndexedDocument: {
+            /** Filename */
+            filename: string;
+            /** File Type */
+            file_type: string;
+            /** Source Url */
+            source_url: string | null;
+            /** Verification Status */
+            verification_status: string;
+            /** Passages */
+            passages: number;
         };
         /** MissionRequest */
         MissionRequest: {
@@ -452,6 +484,8 @@ export interface components {
         };
         /** MultiQuestion */
         MultiQuestion: {
+            /** Document Names */
+            document_names?: string[];
             /** Question */
             question: string;
             /** Experiment Codes */
@@ -471,6 +505,8 @@ export interface components {
         Question: {
             /** Question */
             question: string;
+            /** Document Names */
+            document_names?: string[];
         };
         /** ValidationError */
         ValidationError: {
@@ -494,6 +530,26 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    indexed_documents_ai_data_documents_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndexedDocument"][];
+                };
+            };
+        };
+    };
     health_ai_health_get: {
         parameters: {
             query?: never;

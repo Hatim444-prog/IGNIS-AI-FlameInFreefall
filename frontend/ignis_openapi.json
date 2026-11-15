@@ -5,6 +5,28 @@
     "version": "2.0"
   },
   "paths": {
+    "/ai/data/documents": {
+      "get": {
+        "summary": "Indexed Documents",
+        "operationId": "indexed_documents_ai_data_documents_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/IndexedDocument"
+                  },
+                  "type": "array",
+                  "title": "Response Indexed Documents Ai Data Documents Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/ai/health": {
       "get": {
         "summary": "Health",
@@ -1003,6 +1025,14 @@
       },
       "HybridQuestion": {
         "properties": {
+          "document_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Document Names"
+          },
           "question": {
             "type": "string",
             "maxLength": 1500,
@@ -1055,6 +1085,46 @@
           "question"
         ],
         "title": "HybridQuestion"
+      },
+      "IndexedDocument": {
+        "properties": {
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "file_type": {
+            "type": "string",
+            "title": "File Type"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "verification_status": {
+            "type": "string",
+            "title": "Verification Status"
+          },
+          "passages": {
+            "type": "integer",
+            "title": "Passages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filename",
+          "file_type",
+          "source_url",
+          "verification_status",
+          "passages"
+        ],
+        "title": "IndexedDocument"
       },
       "MissionRequest": {
         "properties": {
@@ -1124,6 +1194,14 @@
       },
       "MultiQuestion": {
         "properties": {
+          "document_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Document Names"
+          },
           "question": {
             "type": "string",
             "maxLength": 1500,
@@ -1164,6 +1242,14 @@
           "question": {
             "type": "string",
             "title": "Question"
+          },
+          "document_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Document Names"
           }
         },
         "type": "object",

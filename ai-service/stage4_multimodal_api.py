@@ -183,6 +183,7 @@ def find_measurements(experiment_codes: list[str], limit: int = 15):
 
 
 class MultiQuestion(BaseModel):
+    document_names: list[str] = Field(default_factory=list, max_length=100)
     question: str = Field(min_length=3, max_length=1500)
     experiment_codes: list[str] = Field(default_factory=list, max_length=10)
     top_k_papers: int = Field(default=4, ge=1, le=6)
@@ -248,7 +249,7 @@ def build_stage4_router(search_documents: Callable) -> APIRouter:
 
     @router.post("/ai/ask-multimodal")
     def ask_multimodal(request: MultiQuestion):
-        papers = search_documents(request.question, request.top_k_papers)
+        papers = search_documents(request.question, request.top_k_papers, request.document_names)
         visuals = find_visual_evidence(
             request.question, request.top_k_visual, request.experiment_codes,
         )
@@ -258,7 +259,8 @@ def build_stage4_router(search_documents: Callable) -> APIRouter:
         pieces = []
         for i, r in enumerate(papers, start=1):
             pieces.append(
-                f"[P{i}] Document {r['source']} page {r['page']}: "
+                f"[P{i}] Document {r['source']}"
+                + (f" page {r['page']}" if r['page'] is not None else "") + ": "
                 f"{r['text'][:2500]}"
             )
         for i, r in enumerate(visuals, start=1):
@@ -310,7 +312,9 @@ def build_stage4_router(search_documents: Callable) -> APIRouter:
             "answer": answer,
             "model": TEXT_MODEL,
             "paper_sources": [
-                {"citation": f"P{i}", "file": r["source"], "page": r["page"]}
+                {"citation": f"P{i}", "file": r["source"], "page": r["page"],
+                 "excerpt": r["text"][:2500],
+                 "source_url": r.get("source_url"), "verification_status": r.get("verification_status")}
                 for i, r in enumerate(papers, start=1)
             ],
             "visual_sources": [

@@ -1,0 +1,32 @@
+﻿sha256,filename,path,size_mb
+8aa61d4660940d9056c06c580e8aa3cac6152cb8bc8f7a646e7152cf1549276f,ACME - Engineering Requirements Doc Rev K.pdf,raw\nasa_psi\documents\ACME - Engineering Requirements Doc Rev K.pdf,2.007
+8aa61d4660940d9056c06c580e8aa3cac6152cb8bc8f7a646e7152cf1549276f,ACME_-_Engineering_Requirements_Doc_Rev_K.pdf,raw\nasa_psi\documents\ACME_-_Engineering_Requirements_Doc_Rev_K.pdf,2.007
+c775153b5c68f5aa8bbdcdb455ef9f737f5291da752ce6befe1f5558cf3fd6ce,SAFFIRE-I Image Directory Nomenclature.pdf,raw\nasa_psi\documents\SAFFIRE-I Image Directory Nomenclature.pdf,0.251
+c775153b5c68f5aa8bbdcdb455ef9f737f5291da752ce6befe1f5558cf3fd6ce,SAFFIRE-I Image Directory Nomenclature.pdf,extracted\nasa_psi\PSI-98_metadata_PSI-166_SAFFIRE-I\SAFFIRE-I Image Directory Nomenclature.pdf,0.251
+941dca3ccf7132913bfd73e8a408f3ea558eaa822486dd53ffcdfa26127461cb,SAME EIRD Rev 2.00 02-25-05 HIgh Q.pdf,raw\nasa_psi\documents\SAME EIRD Rev 2.00 02-25-05 HIgh Q.pdf,5.129
+941dca3ccf7132913bfd73e8a408f3ea558eaa822486dd53ffcdfa26127461cb,SAME EIRD Rev 2.00 02-25-05 HIgh Q.pdf,raw\nasa_psi\documents\PSI-101\SAME EIRD Rev 2.00 02-25-05 HIgh Q.pdf,5.129
+3eed4b7ecd71f9e37a3f7a78d7e7a011ff636bb24ec8bcc72ff97a8ac41b598a,SAME_Baseline Concept Description Document_001 Rev A.pdf,raw\nasa_psi\documents\SAME_Baseline Concept Description Document_001 Rev A.pdf,0.236
+3eed4b7ecd71f9e37a3f7a78d7e7a011ff636bb24ec8bcc72ff97a8ac41b598a,SAME_Baseline Concept Description Document_001 Rev A.pdf,raw\nasa_psi\documents\PSI-101\SAME_Baseline Concept Description Document_001 Rev A.pdf,0.236
+92456d8cbb1ddc622553e44fef762de21f3037e37a3150eaecd58feb327cce6b,PSI-22_Representative Image(s)_ACME logo.png,raw\nasa_psi\images\PSI-22_Representative Image(s)_ACME logo.png,0.122
+92456d8cbb1ddc622553e44fef762de21f3037e37a3150eaecd58feb327cce6b,PSI-159_Representative Image(s)_ACME logo.png,raw\nasa_psi\images\PSI-159\Representative Image(s)\PSI-159_Representative Image(s)_ACME logo.png,0.122
+c01f29c62455f0a3b512290ab85e5687ecded326733189f002f580368402308d,PSI-98_Experimental table_SAFFIRE-1.csv,raw\nasa_psi\structured\PSI-98_Experimental table_SAFFIRE-1.csv,0.0
+c01f29c62455f0a3b512290ab85e5687ecded326733189f002f580368402308d,PSI-98_Experimental table_SAFFIRE-1.csv,extracted\nasa_psi\PSI-98_metadata_PSI-166_SAFFIRE-I\PSI-98_Experimental table_SAFFIRE-1.csv,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-100.txt,extracted\nasa_psi\PSI-100_metadata_PSI-168_SAFFIRE-III\s_PSI-100.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-101.txt,extracted\nasa_psi\PSI-101_metadata_PSI-169_SAME-R\s_PSI-101.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-102.txt,extracted\nasa_psi\PSI-102_metadata_PSI-170_SAME\s_PSI-102.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-106.txt,extracted\nasa_psi\PSI-106_metadata_PSI-174_SLICE\s_PSI-106.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-107.txt,extracted\nasa_psi\PSI-107_metadata_PSI-176_SPICE\s_PSI-107.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-10.txt,extracted\nasa_psi\PSI-10_metadata_PSI-10-ISA\s_PSI-10.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-159.txt,extracted\nasa_psi\PSI-159_metadata_PSI-159-ISA\s_PSI-159.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-20.txt,extracted\nasa_psi\PSI-20_metadata_PSI-96_ACME BRE\s_PSI-20.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-21.txt,extracted\nasa_psi\PSI-21_metadata_PSI-97_ACME CLD Flame\s_PSI-21.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-22.txt,extracted\nasa_psi\PSI-22_metadata_ACME E-FIELD Flames\s_PSI-22.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-23.txt,extracted\nasa_psi\PSI-23_metadata_PSI-99_ACME s-Flame\s_PSI-23.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-25.txt,extracted\nasa_psi\PSI-25_metadata_PSI_metadata_PSI-101_BASS-II\s_PSI-25.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-26.txt,extracted\nasa_psi\PSI-26_metadata_PSI-102_BASS\s_PSI-26.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-39.txt,extracted\nasa_psi\PSI-39_metadata_PSI-118_CFI\s_PSI-39.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-47.txt,extracted\nasa_psi\PSI-47_metadata_PSI-126_DAFT_DAFT-2\s_PSI-47.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-68.txt,extracted\nasa_psi\PSI-68_metadata_PSI-132_FLEX-2\s_PSI-68.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-69.txt,extracted\nasa_psi\PSI-69_metadata_PSI-133_FLEX\s_PSI-69.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-98.txt,extracted\nasa_psi\PSI-98_metadata_PSI-166_SAFFIRE-I\s_PSI-98.txt,0.0
+cb9374159b9b01a83bfe53a0b8ba1a602793df86f298e0ad222615c55d200135,s_PSI-99.txt,extracted\nasa_psi\PSI-99_metadata_PSI-167_SAFFIRE-II\s_PSI-99.txt,0.0

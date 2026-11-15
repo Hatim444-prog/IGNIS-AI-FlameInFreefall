@@ -15,6 +15,8 @@ const experiment = z.object({
   oxygen_percent: z.coerce.number().nullable(),
   pressure_pa: z.coerce.number().nullable(),
   airflow_m_s: z.coerce.number().nullable(),
+  experiment_date: z.string().nullable(),
+  completeness_score: z.coerce.number().optional(),
 });
 export type Experiment = z.infer<typeof experiment>;
 export const variables = z.object({
@@ -188,6 +190,62 @@ export function useRead<T>(
     retry: false,
   });
 }
+const experimentPage = z.object({
+  total: z.number(),
+  limit: z.number(),
+  offset: z.number(),
+  experiments: z.array(experiment),
+});
+export type ExperimentPage = z.infer<typeof experimentPage>;
+export interface ExperimentQuery {
+  investigation?: string;
+  q?: string;
+  fuel_material?: string;
+  gravity_condition?: string;
+  oxygen_min?: number;
+  oxygen_max?: number;
+  pressure_min?: number;
+  pressure_max?: number;
+  airflow_min?: number;
+  airflow_max?: number;
+  airflow_availability?: "all" | "reported" | "not_reported";
+  sort?: "airflow_first" | "code_asc" | "code_desc" | "date_desc" | string;
+  curated?: boolean;
+  limit?: number;
+  offset?: number;
+}
+function experimentParams(query: ExperimentQuery) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== "" && value !== null)
+      params.set(key, String(value));
+  }
+  return params.toString();
+}
+/** Fetch every experiment page so pickers/analytics keep a complete list. */
+export async function fetchAllExperiments(
+  query: ExperimentQuery = {},
+  signal?: AbortSignal,
+): Promise<Experiment[]> {
+  const limit = 100;
+  const all: Experiment[] = [];
+  let offset = 0;
+  let total = Infinity;
+  while (all.length < total) {
+    const qs = experimentParams({ ...query, limit, offset });
+    const page = await request(
+      "/ai/data/experiments",
+      experimentPage,
+      { signal },
+      "?" + qs,
+    );
+    total = page.total;
+    all.push(...page.experiments);
+    offset += page.experiments.length || limit;
+    if (!page.experiments.length) break;
+  }
+  return all;
+}
 export const useDocuments = () =>
   useRead(
     "/ai/data/documents",
@@ -207,6 +265,90 @@ export const useExperiments = (prefix = "") =>
     z.object({ experiments: z.array(experiment) }),
     "?limit=100&dataset_prefix=" + encodeURIComponent(prefix),
   );
+export function useAllExperiments(query: ExperimentQuery = {}) {
+  const qs = experimentParams({ ...query, limit: 100 });
+  return useQuery({
+    queryKey: ["/ai/data/experiments", "all", qs],
+    queryFn: ({ signal }) => fetchAllExperiments(query, signal),
+    staleTime: 30000,
+    retry: false,
+  });
+}
+export function useExperimentPage(query: ExperimentQuery, enabled = true) {
+  const qs = experimentParams(query);
+  return useRead(
+    "/ai/data/experiments",
+    experimentPage,
+    "?" + qs,
+    enabled,
+  );
+}
+export const experimentDetail = z.object({
+  experiment: experiment.extend({
+    experiment_id: z.number().optional(),
+    fuel_phase: z.string().nullable().optional(),
+    research_focus: z.string().nullable().optional(),
+    flow_direction: z.string().nullable().optional(),
+    sample_thickness_mm: z.coerce.number().nullable().optional(),
+    gaps_sequence: z.string().nullable().optional(),
+    filler_material: z.string().nullable().optional(),
+  }),
+  measurements: z.array(
+    z.object({
+      variable_name: z.string(),
+      value: z.coerce.number().nullable(),
+      text_value: z.string().nullable().optional(),
+      unit: z.string().nullable(),
+      qualifier: z.string().nullable().optional(),
+      uncertainty: z.coerce.number().nullable(),
+      source_row: z.number().nullable(),
+      page_number: z.number().nullable().optional(),
+      timestamp_s: z.coerce.number().nullable(),
+      filename: z.string(),
+      file_type: z.string().nullable(),
+      source_url: z.string().nullable(),
+      local_path: z.string().nullable(),
+      sha256: z.string().nullable(),
+      verification_status: z.string().nullable(),
+    }),
+  ),
+});
+export type ExperimentDetail = z.infer<typeof experimentDetail>;
+export function useExperimentDetail(code: string, investigation = "") {
+  const qs = investigation
+    ? "?investigation=" + encodeURIComponent(investigation)
+    : "";
+  return useRead(
+    ("/ai/data/experiments/" + encodeURIComponent(code)) as Path,
+    experimentDetail,
+    qs,
+  );
+}
+export const catalogStats = z.object({
+  investigations: z.array(
+    z.object({
+      code: z.string(),
+      title: z.string(),
+      experiment_count: z.number(),
+      measurement_count: z.number(),
+    }),
+  ),
+  totals: z.object({
+    experiments: z.number(),
+    measurements: z.number(),
+    sources: z.number(),
+    verified_sources: z.number(),
+  }),
+});
+export const useCatalogStats = () =>
+  useRead("/ai/data/stats" as Path, catalogStats);
+export const experimentFacets = z.object({
+  investigations: z.array(z.object({ code: z.string(), title: z.string() })),
+  fuel_material: z.array(z.string()),
+  gravity_condition: z.array(z.string()),
+});
+export const useExperimentFacets = () =>
+  useRead("/ai/data/facets" as Path, experimentFacets);
 export const useVariables = () =>
   useRead("/ai/data/variables", variables, "?dataset_prefix=");
 export const useHealth = () =>
@@ -224,10 +366,19 @@ export const useDatabase = () =>
     "/ai/mission/health",
     z.object({ status: z.string(), investigations_in_db: z.number() }),
   );
-export function origin(code: unknown) {
-  return String(code || "").startsWith("ZARM-")
-    ? "External · ZARM"
-    : "Origin unverified";
+export function origin(
+  e: { investigation_code?: string | null; experiment_code?: string | null } | string,
+) {
+  const investigation =
+    typeof e === "string" ? "" : e.investigation_code || "";
+  const code = typeof e === "string" ? e : e.experiment_code || "";
+  if (investigation) {
+    return investigation.startsWith("ZARM")
+      ? "External · ZARM"
+      : `NASA · ${investigation}`;
+  }
+  if (code.startsWith("ZARM-")) return "External · ZARM";
+  return "Origin unverified";
 }
 export function download(name: string, body: string, type: string) {
   const href = URL.createObjectURL(new Blob([body], { type }));

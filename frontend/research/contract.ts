@@ -126,6 +126,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ai/data/experiments/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Experiment Detail */
+        get: operations["api_experiment_detail_ai_data_experiments__code__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/data/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Stats */
+        get: operations["api_stats_ai_data_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/data/facets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Api Facets */
+        get: operations["api_facets_ai_data_facets_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ai/data/compare": {
         parameters: {
             query?: never;
@@ -638,7 +689,19 @@ export interface operations {
         parameters: {
             query?: {
                 dataset_prefix?: string;
+                investigation?: string;
+                q?: string;
+                fuel_material?: string;
+                gravity_condition?: string;
+                oxygen_min?: number | null;
+                oxygen_max?: number | null;
+                pressure_min?: number | null;
+                pressure_max?: number | null;
+                airflow_min?: number | null;
+                airflow_max?: number | null;
+                sort?: string;
                 limit?: number;
+                offset?: number;
             };
             header?: never;
             path?: never;
@@ -662,6 +725,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_experiment_detail_ai_data_experiments__code__get: {
+        parameters: {
+            query?: {
+                investigation?: string;
+            };
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    api_stats_ai_data_stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    api_facets_ai_data_facets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };

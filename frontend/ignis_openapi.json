@@ -190,8 +190,154 @@
             "required": false,
             "schema": {
               "type": "string",
-              "default": "ZARM-",
+              "default": "",
               "title": "Dataset Prefix"
+            }
+          },
+          {
+            "name": "investigation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Investigation"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "fuel_material",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Fuel Material"
+            }
+          },
+          {
+            "name": "gravity_condition",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Gravity Condition"
+            }
+          },
+          {
+            "name": "oxygen_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Oxygen Min"
+            }
+          },
+          {
+            "name": "oxygen_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Oxygen Max"
+            }
+          },
+          {
+            "name": "pressure_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pressure Min"
+            }
+          },
+          {
+            "name": "pressure_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pressure Max"
+            }
+          },
+          {
+            "name": "airflow_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Airflow Min"
+            }
+          },
+          {
+            "name": "airflow_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Airflow Max"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "asc",
+              "title": "Sort"
             }
           },
           {
@@ -200,8 +346,18 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "default": 30,
+              "default": 25,
               "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
             }
           }
         ],
@@ -221,6 +377,94 @@
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/data/experiments/{code}": {
+      "get": {
+        "tags": [
+          "IGNIS hybrid science"
+        ],
+        "summary": "Api Experiment Detail",
+        "operationId": "api_experiment_detail_ai_data_experiments__code__get",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Code"
+            }
+          },
+          {
+            "name": "investigation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Investigation"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/data/stats": {
+      "get": {
+        "tags": [
+          "IGNIS hybrid science"
+        ],
+        "summary": "Api Stats",
+        "operationId": "api_stats_ai_data_stats_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ai/data/facets": {
+      "get": {
+        "tags": [
+          "IGNIS hybrid science"
+        ],
+        "summary": "Api Facets",
+        "operationId": "api_facets_ai_data_facets_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           }

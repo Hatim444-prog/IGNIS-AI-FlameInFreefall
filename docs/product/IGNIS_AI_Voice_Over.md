@@ -279,4 +279,4 @@ IGNIS AI. Exploring fire in microgravity through scientific evidence.
 - Use actual indexed records for the demonstration. Label any illustrative or sample data clearly.
 - The backend supports images up to 10 MiB and videos up to 30 MiB, while the current frontend applies a 4 MiB limit in proxy mode. Use a small file for the recording and avoid narrating a universal upload limit.
 - The current chart limit is 80 observations. Use a smaller comparison to keep the chart readable.
-- The current display has known feedback and layout issues documented in `artifacts/ux-review/UX-REVIEW.md`; this script does not imply those issues have all been fixed.
+- The current display has known feedback and layout issues documented in [historical UX review](../reviews/UX-REVIEW.md); this script does not imply those issues have all been fixed.

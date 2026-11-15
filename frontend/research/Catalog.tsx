@@ -136,7 +136,6 @@ export function Explorer() {
             onChange={(e) => change("q", e.target.value)}
           />
         </label>
-        <DocumentCollection search={filters.q} />
         <details className="picker">
           <summary>Filter conditions</summary>
           <div className="fields">

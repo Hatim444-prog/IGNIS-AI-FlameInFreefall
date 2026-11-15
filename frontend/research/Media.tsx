@@ -1,9 +1,10 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { ArrowRight, ScanLine } from "lucide-react";
 import type { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
-import { Header, State, EvidenceCards } from "./common";
+import { Header, State, EvidenceCards, Pending } from "./common";
 import { isDirectApiConfigured } from "../src/lib/inference.js";
 import {
   request,
@@ -12,6 +13,13 @@ import {
   visuals,
   uploadObservation,
 } from "./api";
+
+function formatSize(bytes: number) {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+
 export function Media() {
   const ex = useAllExperiments();
   const [file, pick] = useState<File | null>(null),
@@ -19,7 +27,8 @@ export function Media() {
     [code, select] = useState(""),
     [error, fail] = useState(""),
     [result, show] = useState<z.infer<typeof observation> | null>(null),
-    [busy, wait] = useState(false);
+    [busy, wait] = useState(false),
+    [over, setOver] = useState(false);
   const [progress, setProgress] = useState(0);
   const pending = useRef<AbortController | null>(null);
   useEffect(() => () => pending.current?.abort(), []);
@@ -31,6 +40,7 @@ export function Media() {
   );
   function choose(f?: File) {
     if (busy) return;
+    setOver(false);
     show(null);
     fail("");
     pick(null);
@@ -80,113 +90,175 @@ export function Media() {
     }
   }
   return (
-    <>
+    <div className="tool">
       <Header title="Media laboratory" section="Visual evidence">
         Inspect qualitative observations from combustion imagery. Calibrated
         measurements require instrumentation.
       </Header>
-      <section className="panel">
-        <label
-          className="drop"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault();
-            choose(e.dataTransfer.files[0]);
-          }}
-        >
-          Drop media or choose a file
-          <span className="muted">
-            JPEG or PNG up to 10 MiB · MP4 up to 30 MiB
-          </span>
-          <input
-            type="file"
-            disabled={busy}
-            accept="image/jpeg,image/png,video/mp4"
-            onChange={(e) => {
-              choose(e.target.files?.[0]);
-              e.target.value = "";
-            }}
-          />
-        </label>
-        {preview && file && (
-          <>
-            {file.type === "video/mp4" ? (
-              <video controls className="preview" src={preview} />
-            ) : (
-              <img
-                className="preview"
-                src={preview}
-                alt={"Selected upload: " + file.name}
-              />
-            )}
-            <p>{file.name}</p>
-          </>
-        )}
-        <State query={ex} />
-        <label>
-          Associated experiment
-          <select
-            value={code}
-            disabled={busy}
-            onChange={(e) => select(e.target.value)}
-          >
-            <option value="">Unverified · no association</option>
-            {ex.data?.map((r) => (
-              <option key={r.experiment_code}>{r.experiment_code}</option>
-            ))}
-          </select>
-        </label>
-        <div className="actions">
-          <button
-            className="primary"
-            disabled={!file || busy}
-            onClick={() => analyze(false)}
-          >
-            Analyze only
-          </button>
-          <button disabled={!file || busy} onClick={() => analyze(true)}>
-            Analyze and save
-          </button>
-          {busy ? (
-            <button onClick={() => pending.current?.abort()}>
-              Cancel request
-            </button>
-          ) : (
-            <button disabled={!file} onClick={() => choose()}>
-              Reset
-            </button>
-          )}
-        </div>
-        {busy && (
-          <p role="status">
-            {progress === 100
-              ? "Upload complete. Waiting for visual analysis…"
-              : "Uploading media · " + progress + "%"}
-          </p>
-        )}
-        {error && (
-          <p className="notice" role="alert">
-            {error}
-          </p>
-        )}
-      </section>
-      {result && (
+      <div className="tool-split media-split">
         <section className="panel">
-          <small>Qualitative observation</small>
-          <h2>{result.file_name}</h2>
-          <p>{result.description}</p>
-          <p>
-            {result.persisted_to_database
-              ? "Saved · " + (result.review_status || "Unverified")
-              : "Analysis only"}
+          <label
+            className={"drop" + (over ? " is-over" : "")}
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (!busy) setOver(true);
+            }}
+            onDragLeave={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node | null))
+                setOver(false);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              choose(e.dataTransfer.files[0]);
+            }}
+          >
+            <ScanLine size={22} strokeWidth={1.6} aria-hidden />
+            <strong>{file ? "Replace media" : "Drop media or choose a file"}</strong>
+            <span className="muted">
+              JPEG or PNG up to 10 MiB · MP4 up to 30 MiB
+            </span>
+            <input
+              type="file"
+              className="sr-only"
+              disabled={busy}
+              accept="image/jpeg,image/png,video/mp4"
+              onChange={(e) => {
+                choose(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+          </label>
+          {preview && file && (
+            <div className="stage">
+              {file.type === "video/mp4" ? (
+                <video controls className="preview" src={preview} />
+              ) : (
+                <img
+                  className="preview"
+                  src={preview}
+                  alt={"Selected upload: " + file.name}
+                />
+              )}
+            </div>
+          )}
+          {file && (
+            <p className="file-meta">
+              {file.name}
+              <span>
+                {file.type === "video/mp4" ? "MP4" : "Image"} · {formatSize(file.size)}
+              </span>
+            </p>
+          )}
+          {busy && (
+            <>
+              <div
+                className="upload-progress"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={progress}
+                aria-label="Upload progress"
+              >
+                <span style={{ transform: `scaleX(${progress / 100})` }} />
+              </div>
+              <Pending
+                tone={progress === 100 ? "ai" : "data"}
+                label={
+                  progress === 100
+                    ? "Upload complete. Waiting for visual analysis…"
+                    : "Uploading media · " + progress + "%"
+                }
+              />
+            </>
+          )}
+          {error && (
+            <p className="notice" role="alert">
+              {error}
+            </p>
+          )}
+        </section>
+        <section className="panel">
+          <h2>Analysis</h2>
+          <p className="muted">
+            Analyze only keeps the observation on this page. Analyze and save
+            stores an unverified record.
           </p>
+          <State query={ex} />
+          <label>
+            Associated experiment
+            <select
+              value={code}
+              disabled={busy}
+              onChange={(e) => select(e.target.value)}
+            >
+              <option value="">Unverified · no association</option>
+              {ex.data?.map((r) => (
+                <option key={r.experiment_code}>{r.experiment_code}</option>
+              ))}
+            </select>
+          </label>
+          <div className="choice-actions">
+            <div>
+              <button
+                className="primary"
+                disabled={!file || busy}
+                aria-describedby="analyze-only-hint"
+                onClick={() => analyze(false)}
+              >
+                Analyze only
+              </button>
+              <p id="analyze-only-hint">Does not write to the database.</p>
+            </div>
+            <div>
+              <button
+                disabled={!file || busy}
+                aria-describedby="analyze-save-hint"
+                onClick={() => analyze(true)}
+              >
+                Analyze and save
+              </button>
+              <p id="analyze-save-hint">Stores an unverified observation.</p>
+            </div>
+          </div>
+          <div className="actions">
+            {busy ? (
+              <button type="button" onClick={() => pending.current?.abort()}>
+                Cancel request
+              </button>
+            ) : (
+              <button type="button" disabled={!file} onClick={() => choose()}>
+                Reset
+              </button>
+            )}
+          </div>
+        </section>
+      </div>
+      {result && (
+        <section className="panel result-panel">
+          <div className="result-heading">
+            <div>
+              <small>Qualitative observation</small>
+              <h2>{result.file_name}</h2>
+            </div>
+            <p className="status-pill">
+              {result.persisted_to_database
+                ? "Saved · " + (result.review_status || "Unverified")
+                : "Analysis only"}
+            </p>
+          </div>
+          <p>{result.description}</p>
           {result.approx_timestamps_s && (
-            <p>Sample times (s) · {result.approx_timestamps_s.join(", ")}</p>
+            <p className="muted">
+              Sample times (s) · {result.approx_timestamps_s.join(", ")}
+            </p>
           )}
         </section>
       )}
-      <Link to="/media/library">Search visual evidence →</Link>
-    </>
+      <Link className="library-link" to="/media/library">
+        Search visual evidence
+        <ArrowRight size={16} aria-hidden />
+      </Link>
+    </div>
   );
 }
 export function Library() {
@@ -204,7 +276,7 @@ export function Library() {
   const rows = m.data?.results || [];
   const shown = rows.filter((r) => !filter || r.verification_status === filter);
   return (
-    <>
+    <div className="tool">
       <Header section="Library" title="Visual evidence">
         Search stored observations by semantic similarity. Review status and
         experiment linkage accompany each returned source.
@@ -224,6 +296,7 @@ export function Library() {
             required
             maxLength={1500}
             value={query}
+            placeholder="Spherical flame around a thin fuel sample"
             onChange={(e) => edit(e.target.value)}
           />
         </label>
@@ -233,6 +306,7 @@ export function Library() {
           </button>
           <Link to="/media">Analyze media →</Link>
         </div>
+        {m.isPending && <Pending tone="ai" label="Searching the visual library…" />}
       </form>
       {m.error && (
         <p role="alert" className="notice">
@@ -262,10 +336,10 @@ export function Library() {
           {shown.length ? (
             <EvidenceCards rows={shown} />
           ) : (
-            <p>No matching visual observations.</p>
+            <p className="empty-result">No matching visual observations.</p>
           )}
         </section>
       )}
-    </>
+    </div>
   );
 }

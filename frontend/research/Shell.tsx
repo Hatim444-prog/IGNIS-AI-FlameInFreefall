@@ -213,7 +213,7 @@ function Workspace({ children }: { children: ReactNode }) {
             <input
               ref={search}
               aria-label="Search experiments"
-              placeholder="Search experimentsâ€¦"
+              placeholder="Search experiments…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />

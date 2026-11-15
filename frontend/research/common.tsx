@@ -19,6 +19,20 @@ export function Header({
     </header>
   );
 }
+export function Pending({
+  label = "Loading research data…",
+  tone = "data",
+}: {
+  label?: string;
+  tone?: "data" | "ai";
+}) {
+  return (
+    <p role="status" className={"loading" + (tone === "ai" ? " loading-ai" : "")}>
+      <span className={"loader" + (tone === "ai" ? " ai" : "")} aria-hidden />
+      {label}
+    </p>
+  );
+}
 export function State({
   query,
 }: {
@@ -31,11 +45,7 @@ export function State({
         <button onClick={() => query.refetch()}>Retry</button>
       </div>
     );
-  return query.isPending ? (
-    <p role="status" className="loading">
-      Loading research data…
-    </p>
-  ) : null;
+  return query.isPending ? <Pending /> : null;
 }
 const Selection = createContext<{
   codes: string[];
@@ -63,13 +73,13 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
 // The context hook shares this provider module.
 // oxlint-disable-next-line react/only-export-components
 export const useSelection = () => useContext(Selection);
-export function Picker() {
+export function Picker({ suppressStatus = false }: { suppressStatus?: boolean }) {
   const q = useAllExperiments();
   const { codes, set } = useSelection();
   return (
     <details className="picker">
       <summary>Experiment selection · {codes.length}</summary>
-      <State query={q} />
+      {!(suppressStatus && (q.error || q.isPending)) && <State query={q} />}
       <div className="checks">
         {q.data?.map((e) => (
           <label key={e.experiment_code}>

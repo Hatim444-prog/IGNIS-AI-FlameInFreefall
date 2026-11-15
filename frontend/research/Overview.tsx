@@ -1,5 +1,4 @@
 import LiveFire from "./LiveFire";
-import DocumentCollection from "./DocumentCollection";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -90,7 +89,6 @@ export default function Overview() {
         <FlameComparison />
       </section>
 
-      <DocumentCollection />
       <section className="workflow-grid" aria-label="Research tools">
         {workflows.map(({ href, title, text, Icon }) => (
           <Link className="workflow-card" to={href} key={href}>

@@ -1,13 +1,14 @@
 import { expect, test } from "@playwright/test";
-test("live explorer selects a run and opens a sourced comparison", async ({
+test("live explorer selects two runs and opens a sourced comparison", async ({
   page,
 }) => {
   await page.goto("/experiments");
   await page
     .getByPlaceholder("Experiment code, investigation or fuel")
-    .fill("ZARM-144");
+    .fill("ZARM-14");
   const first = page.getByRole("checkbox").first();
   await first.check();
+  await page.getByRole("checkbox").nth(1).check();
   await page.getByRole("link", { name: /Compare selected/ }).click();
   await page.getByRole("button", { name: "Compare measurements" }).click();
   await expect(

@@ -152,6 +152,26 @@
               "default": "ZARM-",
               "title": "Dataset Prefix"
             }
+          },
+          {
+            "name": "experiment_codes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "maxItems": 25
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Experiment Codes"
+            }
           }
         ],
         "responses": {

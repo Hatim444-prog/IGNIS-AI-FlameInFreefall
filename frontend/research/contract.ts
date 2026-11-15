@@ -658,6 +658,7 @@ export interface operations {
         parameters: {
             query?: {
                 dataset_prefix?: string;
+                experiment_codes?: string[] | null;
             };
             header?: never;
             path?: never;

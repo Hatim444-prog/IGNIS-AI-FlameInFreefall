@@ -16,7 +16,14 @@ import {
   Brush,
 } from "recharts";
 import { useMutation } from "@tanstack/react-query";
-import { Picker, Header, State, RunLink, Pending, useSelection } from "./common";
+import {
+  Picker,
+  Header,
+  State,
+  RunLink,
+  Pending,
+  useSelection,
+} from "./common";
 import {
   comparison,
   useVariables,
@@ -119,10 +126,7 @@ function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
         width={narrow ? 56 : 72}
         tick={chartTick}
       />
-      <Tooltip
-        cursor={{ strokeDasharray: "3 3" }}
-        contentStyle={chartTip}
-      />
+      <Tooltip cursor={{ strokeDasharray: "3 3" }} contentStyle={chartTip} />
     </>
   );
   if (!n || !unit)
@@ -143,7 +147,9 @@ function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
         </div>
         <div>
           <dt>Mean</dt>
-          <dd>{Number((values.reduce((a, b) => a + b, 0) / n).toPrecision(5))}</dd>
+          <dd>
+            {Number((values.reduce((a, b) => a + b, 0) / n).toPrecision(5))}
+          </dd>
         </div>
         <div>
           <dt>Median</dt>
@@ -231,10 +237,16 @@ function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
   );
 }
 export default function Analytics() {
-  const v = useVariables(),
-    { codes } = useSelection();
+  const { codes } = useSelection();
+  const v = useVariables(codes);
   const [variable, setVariable] = useState("");
-  const selected = variable || v.data?.variables[0]?.variable_name || "";
+  const validCount = codes.length >= 2 && codes.length <= 25;
+  const variableNames = validCount
+    ? [...new Set(v.data?.variables.map((x) => x.variable_name))]
+    : [];
+  const selected = variableNames.includes(variable)
+    ? variable
+    : variableNames[0] || "";
   const m = useMutation({
     mutationFn: (body: {
       variable_name: string;
@@ -243,9 +255,11 @@ export default function Analytics() {
     }) => post("/ai/data/compare", body, comparison),
   });
   const rows = m.data?.measurements || [];
-  const variableNames = [
-    ...new Set(v.data?.variables.map((x) => x.variable_name)),
-  ];
+  const currentResult =
+    m.data &&
+    m.variables.variable_name === selected &&
+    m.variables.experiment_codes.length === codes.length &&
+    m.variables.experiment_codes.every((code) => codes.includes(code));
   return (
     <div className="tool">
       <Header section="Scientific data" title="Data comparison">
@@ -255,14 +269,39 @@ export default function Analytics() {
       <div className="tool-split compare-split">
         <section className="panel compare-form">
           <h2>Comparison</h2>
-          <State query={v} />
+          {validCount && <State query={v} />}
+          {validCount && v.error && (
+            <p role="alert">
+              Could not load shared measured variables. {v.error.message}{" "}
+              <button type="button" onClick={() => v.refetch()}>
+                Retry
+              </button>
+            </p>
+          )}
           <label>
             Measured variable
             <select
               value={selected}
-              disabled={v.isPending || Boolean(v.error)}
+              aria-describedby="comparison-variable-hint"
+              disabled={
+                !validCount ||
+                v.isPending ||
+                Boolean(v.error) ||
+                !variableNames.length
+              }
               onChange={(e) => setVariable(e.target.value)}
             >
+              {!variableNames.length && (
+                <option value="">
+                  {!validCount
+                    ? "Select 2–25 experiments first"
+                    : v.isPending
+                      ? "Loading shared variables…"
+                      : v.error
+                        ? "Shared variables unavailable"
+                        : "No shared measured variables"}
+                </option>
+              )}
               {variableNames.map((s) => (
                 <option value={s} key={s}>
                   {label(s)}
@@ -270,8 +309,13 @@ export default function Analytics() {
               ))}
             </select>
           </label>
+          <p id="comparison-variable-hint" className="field-hint" role="status">
+            {validCount && v.data && !variableNames.length
+              ? "These experiments have no numeric measured variables in common with the same reported unit. Choose different experiments."
+              : "Only numeric variables recorded for every selected experiment in the same unit are shown."}
+          </p>
           <p className="field-hint">
-            <span>Select 1–25 experiments.</span>
+            <span>Select 2–25 experiments.</span>
             <span>{codes.length} selected</span>
           </p>
           {codes.length > 25 && (
@@ -293,7 +337,11 @@ export default function Analytics() {
             <button
               className="primary"
               disabled={
-                !selected || !codes.length || codes.length > 25 || m.isPending
+                !selected ||
+                !validCount ||
+                v.isPending ||
+                Boolean(v.error) ||
+                m.isPending
               }
               onClick={() =>
                 m.mutate({
@@ -307,13 +355,18 @@ export default function Analytics() {
             </button>
           </div>
           {m.isPending && <Pending tone="ai" label="Comparing…" />}
+          {m.error && (
+            <p role="alert">
+              Could not compare measurements. {m.error.message}
+            </p>
+          )}
         </section>
         <section className="panel scope-panel" aria-labelledby="compare-runs">
           <h2 id="compare-runs">Experiments</h2>
           <Picker startOpen />
         </section>
       </div>
-      {m.data && (
+      {currentResult && m.data && (
         <>
           <section className="panel">
             <h2>{label(m.variables.variable_name)}</h2>

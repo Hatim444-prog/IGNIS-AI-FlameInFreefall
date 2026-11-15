@@ -13,7 +13,7 @@ For a production build run `npm run build`, then `npm start` (Vite preview). Bot
 
 - Overview reports the availability of each data source independently.
 - Experiment Explorer searches, filters, sorts and paginates up to 100 returned experiments. Exact code links request records using the documented prefix filter. The shortlist is shared across pages and survives a reload.
-- Analytics groups by original unit, plots individual observations, supports condition scatterplots with paired values and time series for a single experiment with distinct timestamps. Export source rows to CSV or the displayed chart to SVG.
+- Analytics compares 2–25 experiments. Its measured-variable dropdown lists only numeric variables available for every selected experiment in the same reported unit, updating whenever the selection changes. If there is no shared variable, comparison is disabled with an explanation. Analytics groups by original unit, plots individual observations, supports condition scatterplots with paired values and time series for a single experiment with distinct timestamps. Export source rows to CSV or the displayed chart to SVG.
 - Assistant supports paper, hybrid and multimodal questions. Each turn is an independent API request. Expand evidence cards or export the answer with citations. The conversation is local to the open view.
 - Media Laboratory previews JPEG, PNG and MP4 uploads, reports upload progress, and offers separate analyze-only and save actions. Saved observation search uses the embedding service.
 - Mission Advisor submits validated scenario inputs, displays NASA-linked and external groups, coverage and weighted dimensions, and exports the submitted scenario with its response.

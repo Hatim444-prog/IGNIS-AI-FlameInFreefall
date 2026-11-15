@@ -1,0 +1,383 @@
+{
+  "results": [
+    {
+      "name": "assistant-error",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Research assistant",
+        "Evidence scope",
+        "What evidence is available?"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Measurement focusInfer from questionflame_spread_ratetemperature",
+          "width": 363.734375,
+          "scroll": 362,
+          "options": 3
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        }
+      ]
+    },
+    {
+      "name": "inference-failed-check",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Service status",
+        "FastAPI",
+        "Scientific database",
+        "Inference"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Inference providerLocal OllamaNVIDIA chat with local embeddingsNVIDIA chat and embeddings",
+          "width": 1064.40625,
+          "scroll": 1062,
+          "options": 3
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        }
+      ]
+    },
+    {
+      "name": "mission-results",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Mission advisor",
+        "Ranked scenario",
+        "NASA investigations",
+        "Related external research"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "EnvironmentPressurized Lunar RoverLunar HabitatMars HabitatSpacecraftSpace Station",
+          "width": 314.125,
+          "scroll": 312,
+          "options": 5
+        },
+        {
+          "label": "Research focusSuppressionPreventionDetection",
+          "width": 314.125,
+          "scroll": 312,
+          "options": 3
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": null,
+          "height": 13
+        }
+      ]
+    },
+    {
+      "name": "experiment-detail",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "ZARM-144",
+        "Flame spread in microgravity under varied atmospheric conditions",
+        "Measurements & scientific evidence"
+      ],
+      "alerts": [],
+      "selects": [],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        }
+      ]
+    },
+    {
+      "name": "library-results",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Visual evidence",
+        "Results for “Spherical flame”"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "VerificationAll statusesunverified",
+          "width": 1064.40625,
+          "scroll": 1062,
+          "options": 2
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": "ZARM-144",
+          "height": 19
+        }
+      ]
+    },
+    {
+      "name": "upload-rejected",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Media laboratory",
+        "Analysis"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Associated experimentUnverified · no associationZARM-144ZARM-145ZARM-146ZARM-147ZARM-148ZARM-149ZARM-150ZARM-151ZARM-152ZARM-153ZARM-154ZARM-155ZARM-156ZARM-157ZARM-158ZARM-159",
+          "width": 363.734375,
+          "scroll": 362,
+          "options": 17
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        }
+      ]
+    },
+    {
+      "name": "columns-expanded",
+      "width": 390,
+      "scrollWidth": 390,
+      "headings": [
+        "Experiment explorer",
+        "Filters"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "DatasetTop 150 — most completeAll experiments",
+          "width": 312,
+          "scroll": 310,
+          "options": 2
+        },
+        {
+          "label": "InvestigationAll investigationsZARM-FLARE — Flame spread in microgravity under varied atmospheric conditions",
+          "width": 312,
+          "scroll": 310,
+          "options": 2
+        },
+        {
+          "label": "Airflow availabilityAll experimentsReported onlyNot reported only",
+          "width": 312,
+          "scroll": 310,
+          "options": 3
+        },
+        {
+          "label": "Fuel MaterialAllCotton fabric",
+          "width": 312,
+          "scroll": 310,
+          "options": 2
+        },
+        {
+          "label": "Gravity ConditionAllmicrogravity",
+          "width": 312,
+          "scroll": 310,
+          "options": 2
+        },
+        {
+          "label": "SortAirflow reported firstCode A–ZCode Z–ADate newest first",
+          "width": 312,
+          "scroll": 310,
+          "options": 4
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 19.5
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": "Select ZARM-144",
+          "height": 18
+        },
+        {
+          "text": "ZARM-144",
+          "height": 14
+        },
+        {
+          "text": "View",
+          "height": 14
+        },
+        {
+          "text": "Select ZARM-145",
+          "height": 18
+        },
+        {
+          "text": "ZARM-145",
+          "height": 14
+        },
+        {
+          "text": "View",
+          "height": 14
+        },
+        {
+          "text": "Select ZARM-146",
+          "height": 18
+        },
+        {
+          "text": "ZARM-146",
+          "height": 14
+        },
+        {
+          "text": "View",
+          "height": 14
+        },
+        {
+          "text": "Select ZARM-147",
+          "height": 18
+        },
+        {
+          "text": "ZARM-147",
+          "height": 14
+        },
+        {
+          "text": "View",
+          "height": 14
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "native dropdown keyboard",
+      "value": "lunar_habitat"
+    },
+    {
+      "name": "advertised 10 MiB upload rejects 5 MiB silently",
+      "buttonDisabled": true,
+      "alerts": 0
+    },
+    {
+      "name": "mobile drawer opens",
+      "visible": true
+    },
+    {
+      "name": "mobile drawer Escape closes",
+      "visible": 0
+    },
+    {
+      "name": "columns toggle",
+      "headerVisible": 0
+    }
+  ],
+  "errors": []
+}

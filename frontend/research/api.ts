@@ -349,8 +349,19 @@ export const experimentFacets = z.object({
 });
 export const useExperimentFacets = () =>
   useRead("/ai/data/facets" as Path, experimentFacets);
-export const useVariables = () =>
-  useRead("/ai/data/variables", variables, "?dataset_prefix=");
+export function useVariables(experimentCodes?: string[]) {
+  const params = new URLSearchParams({ dataset_prefix: "" });
+  [...new Set(experimentCodes)]
+    .sort()
+    .forEach((code) => params.append("experiment_codes", code));
+  return useRead(
+    "/ai/data/variables",
+    variables,
+    "?" + params.toString(),
+    experimentCodes === undefined ||
+      (experimentCodes.length >= 2 && experimentCodes.length <= 25),
+  );
+}
 export const useHealth = () =>
   useRead(
     "/ai/health",

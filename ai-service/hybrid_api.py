@@ -16,7 +16,7 @@ from typing import Callable, Optional
 
 import psycopg
 from dotenv import load_dotenv
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from db_config import connect_db as _connect_db
@@ -57,10 +57,24 @@ class CompareRequest(BaseModel):
     dataset_prefix: str = Field(default="ZARM-", max_length=60)
 
 
-def get_variables(prefix: str = "ZARM-") -> list[dict]:
+def get_variables(prefix: str = "ZARM-", experiment_codes: Optional[list[str]] = None) -> list[dict]:
+    # A comparison variable must have numeric observations in the same original
+    # unit for every requested experiment. Keep the unscoped catalog unchanged.
+    codes = sorted(set(experiment_codes or []))
+    scope = ""
+    having = ""
+    params: list = [prefix + "%"]
+    if codes:
+        scope = """
+            AND e.experiment_code = ANY(%s::text[])
+            AND m.value IS NOT NULL
+            AND NULLIF(BTRIM(m.unit), '') IS NOT NULL
+        """
+        having = "HAVING COUNT(DISTINCT e.experiment_code) = %s"
+        params.extend([codes, len(codes)])
     with connect_db() as conn:
         return conn.execute(
-            """
+            f"""
             SELECT m.variable_name, m.unit,
                    COUNT(*)::int AS observation_count,
                    COUNT(DISTINCT e.id)::int AS experiment_count,
@@ -69,10 +83,12 @@ def get_variables(prefix: str = "ZARM-") -> list[dict]:
             FROM measurements m
             JOIN experiments e ON e.id = m.experiment_id
             WHERE e.experiment_code LIKE %s
+            {scope}
             GROUP BY m.variable_name, m.unit
+            {having}
             ORDER BY m.variable_name, m.unit
             """,
-            (prefix + "%",),
+            params,
         ).fetchall()
 
 
@@ -534,10 +550,13 @@ def build_hybrid_router(search_documents: Callable) -> APIRouter:
     router = APIRouter(prefix="/ai", tags=["IGNIS hybrid science"])
 
     @router.get("/data/variables")
-    def api_variables(dataset_prefix: str = "ZARM-"):
+    def api_variables(
+        dataset_prefix: str = "ZARM-",
+        experiment_codes: Optional[list[str]] = Query(default=None, max_length=25),
+    ):
         try:
             return {"dataset_prefix": dataset_prefix,
-                    "variables": json_safe(get_variables(dataset_prefix))}
+                    "variables": json_safe(get_variables(dataset_prefix, experiment_codes))}
         except psycopg.Error as exc:
             raise HTTPException(503, "Scientific database unavailable") from exc
 

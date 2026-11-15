@@ -1,0 +1,1856 @@
+{
+  "results": [
+    {
+      "name": "offline-experiments",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Experiment explorer",
+        "Filters"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "DatasetTop 150 — most completeAll experiments",
+          "width": 278,
+          "scroll": 276,
+          "options": 2
+        },
+        {
+          "label": "InvestigationAll investigations",
+          "width": 278,
+          "scroll": 276,
+          "options": 1
+        },
+        {
+          "label": "Airflow availabilityAll experimentsReported onlyNot reported only",
+          "width": 278,
+          "scroll": 276,
+          "options": 3
+        },
+        {
+          "label": "Fuel MaterialAll",
+          "width": 278,
+          "scroll": 276,
+          "options": 1
+        },
+        {
+          "label": "Gravity ConditionAll",
+          "width": 278,
+          "scroll": 276,
+          "options": 1
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API offline",
+          "height": 15
+        }
+      ]
+    },
+    {
+      "name": "offline-analytics",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Data comparison",
+        "Comparison",
+        "Experiments"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Measured variable",
+          "width": 642.671875,
+          "scroll": 641,
+          "options": 0
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API offline",
+          "height": 15
+        }
+      ]
+    },
+    {
+      "name": "offline-settings",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Service status",
+        "FastAPI",
+        "Scientific database",
+        "Inference"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Inference providerLocal OllamaNVIDIA chat with local embeddingsNVIDIA chat and embeddings",
+          "width": 1064.40625,
+          "scroll": 1062,
+          "options": 3
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API offline",
+          "height": 15
+        }
+      ]
+    },
+    {
+      "name": "offline-mission-advisor",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Mission advisor"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "EnvironmentPressurized Lunar RoverLunar HabitatMars HabitatSpacecraftSpace Station",
+          "width": 314.125,
+          "scroll": 312,
+          "options": 5
+        },
+        {
+          "label": "Research focusSuppressionPreventionDetection",
+          "width": 314.125,
+          "scroll": 312,
+          "options": 3
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API offline",
+          "height": 15
+        },
+        {
+          "text": null,
+          "height": 13
+        }
+      ]
+    },
+    {
+      "name": "1440-dashboard",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Exploring Fire in Microgravity",
+        " Experiment collection",
+        " Mission Advisor",
+        " Featured PDFs"
+      ],
+      "alerts": [],
+      "selects": [],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": "View all ",
+          "height": 15
+        },
+        {
+          "text": "ZARM-144",
+          "height": 19
+        },
+        {
+          "text": "ZARM-145",
+          "height": 19
+        },
+        {
+          "text": "ZARM-146",
+          "height": 19
+        },
+        {
+          "text": "View all ",
+          "height": 15
+        }
+      ]
+    },
+    {
+      "name": "1440-experiments",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Experiment explorer",
+        "Filters"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "DatasetTop 150 — most completeAll experiments",
+          "width": 278,
+          "scroll": 276,
+          "options": 2
+        },
+        {
+          "label": "InvestigationAll investigationsZARM-FLARE — Flame spread in microgravity under varied atmospheric conditions",
+          "width": 278,
+          "scroll": 276,
+          "options": 2
+        },
+        {
+          "label": "Airflow availabilityAll experimentsReported onlyNot reported only",
+          "width": 278,
+          "scroll": 276,
+          "options": 3
+        },
+        {
+          "label": "Fuel MaterialAllCotton fabric",
+          "width": 278,
+          "scroll": 276,
+          "options": 2
+        },
+        {
+          "label": "Gravity ConditionAllmicrogravity",
+          "width": 278,
+          "scroll": 276,
+          "options": 2
+        },
+        {
+          "label": "SortAirflow reported firstCode A–ZCode Z–ADate newest first",
+          "width": 210,
+          "scroll": 208,
+          "options": 4
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": "Select ZARM-144",
+          "height": 18
+        },
+        {
+          "text": "ZARM-144",
+          "height": 14
+        },
+        {
+          "text": "View",
+          "height": 14
+        },
+        {
+          "text": "Select ZARM-145",
+          "height": 18
+        },
+        {
+          "text": "ZARM-145",
+          "height": 14
+        },
+        {
+          "text": "View",
+          "height": 14
+        },
+        {
+          "text": "Select ZARM-146",
+          "height": 18
+        },
+        {
+          "text": "ZARM-146",
+          "height": 14
+        },
+        {
+          "text": "View",
+          "height": 14
+        },
+        {
+          "text": "Select ZARM-147",
+          "height": 18
+        },
+        {
+          "text": "ZARM-147",
+          "height": 14
+        },
+        {
+          "text": "View",
+          "height": 14
+        }
+      ]
+    },
+    {
+      "name": "1440-analytics",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Data comparison",
+        "Comparison",
+        "Experiments"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Measured variableflame spread ratetemperature",
+          "width": 642.671875,
+          "scroll": 641,
+          "options": 2
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        }
+      ]
+    },
+    {
+      "name": "1440-assistant",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Research assistant",
+        "Evidence scope"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Measurement focusInfer from questionflame_spread_ratetemperature",
+          "width": 363.734375,
+          "scroll": 362,
+          "options": 3
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        }
+      ]
+    },
+    {
+      "name": "1440-media",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Media laboratory",
+        "Analysis"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Associated experimentUnverified · no associationZARM-144ZARM-145ZARM-146ZARM-147ZARM-148ZARM-149ZARM-150ZARM-151ZARM-152ZARM-153ZARM-154ZARM-155ZARM-156ZARM-157ZARM-158ZARM-159",
+          "width": 363.734375,
+          "scroll": 362,
+          "options": 17
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        }
+      ]
+    },
+    {
+      "name": "1440-media-library",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Visual evidence"
+      ],
+      "alerts": [],
+      "selects": [],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        }
+      ]
+    },
+    {
+      "name": "1440-mission-advisor",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Mission advisor"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "EnvironmentPressurized Lunar RoverLunar HabitatMars HabitatSpacecraftSpace Station",
+          "width": 314.125,
+          "scroll": 312,
+          "options": 5
+        },
+        {
+          "label": "Research focusSuppressionPreventionDetection",
+          "width": 314.125,
+          "scroll": 312,
+          "options": 3
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": null,
+          "height": 13
+        }
+      ]
+    },
+    {
+      "name": "1440-investigations",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Investigations",
+        "Research documents",
+        "Flame spread in microgravity under varied atmospheric conditions"
+      ],
+      "alerts": [],
+      "selects": [],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": "Browse sources →",
+          "height": 15
+        },
+        {
+          "text": "Explore records →",
+          "height": 21
+        }
+      ]
+    },
+    {
+      "name": "1440-sources",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Evidence sources",
+        "Indexed research documents"
+      ],
+      "alerts": [],
+      "selects": [],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": "Ask about this document →",
+          "height": 21
+        }
+      ]
+    },
+    {
+      "name": "1440-settings",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Service status",
+        "FastAPI",
+        "Scientific database",
+        "Inference"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Inference providerLocal OllamaNVIDIA chat with local embeddingsNVIDIA chat and embeddings",
+          "width": 1064.40625,
+          "scroll": 1062,
+          "options": 3
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        }
+      ]
+    },
+    {
+      "name": "390-dashboard",
+      "width": 390,
+      "scrollWidth": 390,
+      "headings": [
+        "Exploring Fire in Microgravity",
+        " Experiment collection",
+        " Mission Advisor",
+        " Featured PDFs"
+      ],
+      "alerts": [],
+      "selects": [],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 19.5
+        },
+        {
+          "text": "ZARM-144",
+          "height": 19
+        },
+        {
+          "text": "ZARM-145",
+          "height": 19
+        },
+        {
+          "text": "ZARM-146",
+          "height": 19
+        }
+      ]
+    },
+    {
+      "name": "390-experiments",
+      "width": 390,
+      "scrollWidth": 390,
+      "headings": [
+        "Experiment explorer",
+        "Filters"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "DatasetTop 150 — most completeAll experiments",
+          "width": 312,
+          "scroll": 310,
+          "options": 2
+        },
+        {
+          "label": "InvestigationAll investigationsZARM-FLARE — Flame spread in microgravity under varied atmospheric conditions",
+          "width": 312,
+          "scroll": 310,
+          "options": 2
+        },
+        {
+          "label": "Airflow availabilityAll experimentsReported onlyNot reported only",
+          "width": 312,
+          "scroll": 310,
+          "options": 3
+        },
+        {
+          "label": "Fuel MaterialAllCotton fabric",
+          "width": 312,
+          "scroll": 310,
+          "options": 2
+        },
+        {
+          "label": "Gravity ConditionAllmicrogravity",
+          "width": 312,
+          "scroll": 310,
+          "options": 2
+        },
+        {
+          "label": "SortAirflow reported firstCode A–ZCode Z–ADate newest first",
+          "width": 312,
+          "scroll": 310,
+          "options": 4
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 19.5
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": null,
+          "height": 18
+        },
+        {
+          "text": "Select ZARM-144",
+          "height": 18
+        },
+        {
+          "text": "ZARM-144",
+          "height": 14
+        },
+        {
+          "text": "View",
+          "height": 14
+        },
+        {
+          "text": "Select ZARM-145",
+          "height": 18
+        },
+        {
+          "text": "ZARM-145",
+          "height": 14
+        },
+        {
+          "text": "View",
+          "height": 14
+        },
+        {
+          "text": "Select ZARM-146",
+          "height": 18
+        },
+        {
+          "text": "ZARM-146",
+          "height": 14
+        },
+        {
+          "text": "View",
+          "height": 14
+        },
+        {
+          "text": "Select ZARM-147",
+          "height": 18
+        },
+        {
+          "text": "ZARM-147",
+          "height": 14
+        },
+        {
+          "text": "View",
+          "height": 14
+        }
+      ]
+    },
+    {
+      "name": "390-analytics",
+      "width": 390,
+      "scrollWidth": 390,
+      "headings": [
+        "Data comparison",
+        "Comparison",
+        "Experiments"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Measured variableflame spread ratetemperature",
+          "width": 312,
+          "scroll": 310,
+          "options": 2
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 19.5
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        }
+      ]
+    },
+    {
+      "name": "390-assistant",
+      "width": 390,
+      "scrollWidth": 390,
+      "headings": [
+        "Research assistant",
+        "Evidence scope"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Measurement focusInfer from questionflame_spread_ratetemperature",
+          "width": 312,
+          "scroll": 310,
+          "options": 3
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 19.5
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        }
+      ]
+    },
+    {
+      "name": "390-media",
+      "width": 390,
+      "scrollWidth": 390,
+      "headings": [
+        "Media laboratory",
+        "Analysis"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Associated experimentUnverified · no associationZARM-144ZARM-145ZARM-146ZARM-147ZARM-148ZARM-149ZARM-150ZARM-151ZARM-152ZARM-153ZARM-154ZARM-155ZARM-156ZARM-157ZARM-158ZARM-159",
+          "width": 312,
+          "scroll": 310,
+          "options": 17
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 19.5
+        }
+      ]
+    },
+    {
+      "name": "390-media-library",
+      "width": 390,
+      "scrollWidth": 390,
+      "headings": [
+        "Visual evidence"
+      ],
+      "alerts": [],
+      "selects": [],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 19.5
+        }
+      ]
+    },
+    {
+      "name": "390-mission-advisor",
+      "width": 390,
+      "scrollWidth": 390,
+      "headings": [
+        "Mission advisor"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "EnvironmentPressurized Lunar RoverLunar HabitatMars HabitatSpacecraftSpace Station",
+          "width": 282,
+          "scroll": 280,
+          "options": 5
+        },
+        {
+          "label": "Research focusSuppressionPreventionDetection",
+          "width": 282,
+          "scroll": 280,
+          "options": 3
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 19.5
+        },
+        {
+          "text": null,
+          "height": 13
+        }
+      ]
+    },
+    {
+      "name": "390-investigations",
+      "width": 390,
+      "scrollWidth": 390,
+      "headings": [
+        "Investigations",
+        "Research documents",
+        "Flame spread in microgravity under varied atmospheric conditions"
+      ],
+      "alerts": [],
+      "selects": [],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 19.5
+        },
+        {
+          "text": "Explore records →",
+          "height": 21
+        }
+      ]
+    },
+    {
+      "name": "390-sources",
+      "width": 390,
+      "scrollWidth": 394,
+      "headings": [
+        "Evidence sources",
+        "Indexed research documents"
+      ],
+      "alerts": [],
+      "selects": [],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 19.5
+        },
+        {
+          "text": "Ask about this document →",
+          "height": 21
+        }
+      ]
+    },
+    {
+      "name": "390-settings",
+      "width": 390,
+      "scrollWidth": 390,
+      "headings": [
+        "Service status",
+        "FastAPI",
+        "Scientific database",
+        "Inference"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Inference providerLocal OllamaNVIDIA chat with local embeddingsNVIDIA chat and embeddings",
+          "width": 312,
+          "scroll": 310,
+          "options": 3
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 19.5
+        }
+      ]
+    },
+    {
+      "name": "chart-bars-16",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Data comparison",
+        "Comparison",
+        "Experiments",
+        "flame spread rate",
+        "Measurements (mm/s)",
+        "Source measurements"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Measured variableflame spread ratetemperature",
+          "width": 642.671875,
+          "scroll": 641,
+          "options": 2
+        },
+        {
+          "label": "Horizontal axisRecorded observationOxygen (%)Pressure (Pa)Airflow (m/s)Time (s)",
+          "width": 210,
+          "scroll": 208,
+          "options": 5
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": "ZARM-144",
+          "height": 14
+        },
+        {
+          "text": "ZARM-145",
+          "height": 14
+        },
+        {
+          "text": "ZARM-146",
+          "height": 14
+        }
+      ]
+    },
+    {
+      "name": "chart-scatter",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Data comparison",
+        "Comparison",
+        "Experiments",
+        "flame spread rate",
+        "Measurements (mm/s)",
+        "Source measurements"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Measured variableflame spread ratetemperature",
+          "width": 642.671875,
+          "scroll": 641,
+          "options": 2
+        },
+        {
+          "label": "Horizontal axisRecorded observationOxygen (%)Pressure (Pa)Airflow (m/s)Time (s)",
+          "width": 210,
+          "scroll": 208,
+          "options": 5
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": "ZARM-144",
+          "height": 14
+        },
+        {
+          "text": "ZARM-145",
+          "height": 14
+        },
+        {
+          "text": "ZARM-146",
+          "height": 14
+        }
+      ]
+    },
+    {
+      "name": "chart-tooltip",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Data comparison",
+        "Comparison",
+        "Experiments",
+        "flame spread rate",
+        "Measurements (mm/s)",
+        "Source measurements"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Measured variableflame spread ratetemperature",
+          "width": 642.671875,
+          "scroll": 641,
+          "options": 2
+        },
+        {
+          "label": "Horizontal axisRecorded observationOxygen (%)Pressure (Pa)Airflow (m/s)Time (s)",
+          "width": 210,
+          "scroll": 208,
+          "options": 5
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": "ZARM-144",
+          "height": 14
+        },
+        {
+          "text": "ZARM-145",
+          "height": 14
+        },
+        {
+          "text": "ZARM-146",
+          "height": 14
+        }
+      ]
+    },
+    {
+      "name": "chart-mobile",
+      "width": 390,
+      "scrollWidth": 390,
+      "headings": [
+        "Data comparison",
+        "Comparison",
+        "Experiments",
+        "flame spread rate",
+        "Measurements (mm/s)",
+        "Source measurements"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Measured variableflame spread ratetemperature",
+          "width": 312,
+          "scroll": 310,
+          "options": 2
+        },
+        {
+          "label": "Horizontal axisRecorded observationOxygen (%)Pressure (Pa)Airflow (m/s)Time (s)",
+          "width": 312,
+          "scroll": 310,
+          "options": 5
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 19.5
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": "ZARM-144",
+          "height": 14
+        },
+        {
+          "text": "ZARM-145",
+          "height": 14
+        },
+        {
+          "text": "ZARM-146",
+          "height": 14
+        }
+      ]
+    },
+    {
+      "name": "chart-81",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Data comparison",
+        "Comparison",
+        "Experiments",
+        "flame spread rate",
+        "Measurements (mm/s)",
+        "Source measurements"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Measured variableflame spread ratetemperature",
+          "width": 642.671875,
+          "scroll": 641,
+          "options": 2
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": "ZARM-144",
+          "height": 14
+        },
+        {
+          "text": "ZARM-145",
+          "height": 14
+        },
+        {
+          "text": "ZARM-146",
+          "height": 14
+        }
+      ]
+    },
+    {
+      "name": "chart-bars-4",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Data comparison",
+        "Comparison",
+        "Experiments",
+        "flame spread rate",
+        "Measurements (mm/s)",
+        "Source measurements"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Measured variableflame spread ratetemperature",
+          "width": 642.671875,
+          "scroll": 641,
+          "options": 2
+        },
+        {
+          "label": "Horizontal axisRecorded observationOxygen (%)Pressure (Pa)Airflow (m/s)Time (s)",
+          "width": 210,
+          "scroll": 208,
+          "options": 5
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": "ZARM-144",
+          "height": 14
+        },
+        {
+          "text": "ZARM-145",
+          "height": 14
+        },
+        {
+          "text": "ZARM-146",
+          "height": 14
+        }
+      ]
+    },
+    {
+      "name": "chart-error",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "headings": [
+        "Data comparison",
+        "Comparison",
+        "Experiments"
+      ],
+      "alerts": [],
+      "selects": [
+        {
+          "label": "Measured variableflame spread ratetemperature",
+          "width": 642.671875,
+          "scroll": 641,
+          "options": 2
+        }
+      ],
+      "smallTargets": [
+        {
+          "text": "API online",
+          "height": 15
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        },
+        {
+          "text": null,
+          "height": 13
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

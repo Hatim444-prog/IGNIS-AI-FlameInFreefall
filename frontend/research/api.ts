@@ -402,3 +402,15 @@ export function download(name: string, body: string, type: string) {
 export function label(key: string) {
   return key.replaceAll("_", " ");
 }
+const measureFormat = new Intl.NumberFormat("en-US", {
+  maximumSignificantDigits: 6,
+  useGrouping: false,
+});
+export function formatMeasure(value: unknown): string {
+  if (value == null || value === "") return "Not reported";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "string" && !Number.isFinite(Number(value))) return value;
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return String(value);
+  return measureFormat.format(n);
+}

@@ -102,7 +102,7 @@ export function Sources() {
         <State query={documents} />
         {matching?.map((d) => (
           <article className="sample" key={d.filename}>
-            <h3>{d.filename}</h3>
+            <h3 className="file-name">{d.filename}</h3>
             <Link to={"/assistant?document=" + encodeURIComponent(d.filename)}>
               Ask about this document →
             </Link>

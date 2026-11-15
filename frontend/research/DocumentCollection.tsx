@@ -11,7 +11,7 @@ export default function DocumentCollection({ search = "" }: { search?: string })
     <State query={documents}/>
     {matches && <>
       <p>{matches.length} {query ? "matching" : "indexed"} documents · Select a title to ask about its evidence.</p>
-      <div className="actions">{matches.map(d=><Link className="action" key={d.filename} to={"/assistant?document="+encodeURIComponent(d.filename)}>{d.filename}</Link>)}</div>
+      <div className="actions file-links">{matches.map(d=><Link className="action file-name" key={d.filename} to={"/assistant?document="+encodeURIComponent(d.filename)}>{d.filename}</Link>)}</div>
     </>}
   </section>;
 }

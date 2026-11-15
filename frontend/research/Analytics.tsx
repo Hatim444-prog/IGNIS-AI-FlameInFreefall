@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import {
   BarChart,
   Bar,
@@ -22,6 +22,7 @@ import {
   State,
   RunLink,
   Pending,
+  useMedia,
   useSelection,
 } from "./common";
 import {
@@ -29,15 +30,70 @@ import {
   useVariables,
   post,
   download,
+  formatMeasure,
   label,
   type Evidence,
 } from "./api";
-const chartTick = { fill: "#a4acb9", fontSize: 12 };
-const chartTip = {
-  background: "var(--panel)",
-  border: "1px solid var(--border)",
-  color: "var(--fg)",
+const chartTick = { fill: "var(--muted)", fontSize: 12 };
+const axisLabel = {
+  fill: "var(--muted)",
+  fontSize: 12,
 };
+type ChartPoint = {
+  name: string;
+  experiment: string;
+  source: string;
+  value: number;
+  uncertainty: number | null;
+  x: number | null;
+};
+function categoryInterval(count: number, narrow: boolean) {
+  const budget = narrow ? 4 : 8;
+  if (count <= budget) return 0;
+  return Math.ceil(count / budget) - 1;
+}
+function sourceLabel(row: Evidence) {
+  const file =
+    row.filename == null || row.filename === ""
+      ? "Source not reported"
+      : String(row.filename);
+  return row.source_row == null || row.source_row === ""
+    ? file
+    : file + " · row " + row.source_row;
+}
+function MeasureTooltip({
+  active,
+  payload,
+  unit,
+  xLabel,
+}: {
+  active?: boolean;
+  payload?: ReadonlyArray<{ payload?: ChartPoint }>;
+  unit: string;
+  xLabel?: string;
+}) {
+  const point = payload?.[0]?.payload;
+  if (!active || !point) return null;
+  return (
+    <div className="chart-tip">
+      <p>
+        <strong>{point.experiment}</strong>
+      </p>
+      <p>
+        {formatMeasure(point.value)} {unit}
+        {point.uncertainty != null
+          ? ` ± ${formatMeasure(point.uncertainty)}`
+          : ""}
+      </p>
+      {xLabel && point.x != null && (
+        <p>
+          {xLabel}: {formatMeasure(point.x)}
+        </p>
+      )}
+      <p>{point.source}</p>
+    </div>
+  );
+}
 function numeric(value: unknown) {
   if (value == null || value === "") return null;
   const n = Number(value);
@@ -59,20 +115,14 @@ function csv(rows: Evidence[]) {
     "text/csv",
   );
 }
-function useNarrow() {
-  const [narrow, setNarrow] = useState(false);
-  useEffect(() => {
-    const query = window.matchMedia("(max-width: 720px)");
-    const apply = () => setNarrow(query.matches);
-    apply();
-    query.addEventListener("change", apply);
-    return () => query.removeEventListener("change", apply);
-  }, []);
-  return narrow;
-}
 function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
   const [axis, setAxis] = useState("experiment");
-  const narrow = useNarrow();
+  const [span, setSpan] = useState<{
+    start: number;
+    end: number;
+    key: string;
+  } | null>(null);
+  const narrow = useMedia("(max-width: 720px)");
   const figure = useRef<HTMLDivElement>(null);
   const dimensions = [
     ["oxygen_percent", "Oxygen (%)"],
@@ -93,7 +143,9 @@ function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
       ? []
       : [
           {
-            name: String(r.experiment_code) + " · " + (i + 1),
+            name: String(r.experiment_code ?? "Not reported") + " · " + (i + 1),
+            experiment: String(r.experiment_code ?? "Not reported"),
+            source: sourceLabel(r),
             value,
             uncertainty: numeric(r.uncertainty),
             x: active ? numeric(r[active[0]]) : null,
@@ -109,28 +161,63 @@ function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
     active?.[0] === "timestamp_s" &&
     new Set(rows.map((r) => r.experiment_code)).size === 1 &&
     new Set(paired.map((p) => p.x)).size === paired.length;
-  const axes = (
-    <>
-      <CartesianGrid stroke="#344357" />
-      <XAxis
-        type="number"
-        dataKey="x"
-        name={active?.[1]}
-        domain={["dataMin", "dataMax"]}
-        tick={chartTick}
-      />
-      <YAxis
-        dataKey="value"
-        name="Measurement"
-        unit={" " + unit}
-        width={narrow ? 56 : 72}
-        tick={chartTick}
-      />
-      <Tooltip cursor={{ strokeDasharray: "3 3" }} contentStyle={chartTip} />
-    </>
+  const plotted = active ? paired.length : n;
+  const angled = !active && n > 6;
+  const dense = plotted > 12;
+  const spanKey = axis + ":" + n;
+  const activeSpan = span?.key === spanKey ? span : null;
+  const visible =
+    activeSpan && activeSpan.end >= activeSpan.start
+      ? activeSpan.end - activeSpan.start + 1
+      : plotted;
+  const brush = dense ? (
+    <Brush
+      dataKey={active ? "x" : "name"}
+      height={narrow ? 28 : 24}
+      stroke="var(--accent)"
+      fill="var(--raised)"
+      travellerWidth={10}
+      onChange={(range) =>
+        setSpan((current) =>
+          current?.key === spanKey &&
+          current.start === range.startIndex &&
+          current.end === range.endIndex
+            ? current
+            : { start: range.startIndex, end: range.endIndex, key: spanKey },
+        )
+      }
+    />
+  ) : null;
+  const tooltip = (
+    <Tooltip
+      cursor={{ strokeDasharray: "3 3" }}
+      content={(props) => (
+        <MeasureTooltip
+          active={props.active}
+          payload={props.payload as ReadonlyArray<{ payload?: ChartPoint }>}
+          unit={unit}
+          xLabel={active?.[1]}
+        />
+      )}
+    />
   );
+  const yAxis = {
+    width: narrow ? 64 : 76,
+    tick: chartTick,
+    tickFormatter: (value: number | string) => formatMeasure(value),
+    label: {
+      value: `Measurement (${unit})`,
+      angle: -90,
+      position: "insideLeft" as const,
+      offset: 12,
+      ...axisLabel,
+    },
+  };
   if (!n || !unit)
     return <p>Insufficient comparable data with reported units.</p>;
+  const mean = values.reduce((a, b) => a + b, 0) / n;
+  const median =
+    (values[Math.floor((n - 1) / 2)] + values[Math.floor(n / 2)]) / 2;
   return (
     <section className="panel">
       <h2>Measurements ({unit})</h2>
@@ -142,102 +229,161 @@ function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
         <div>
           <dt>Range</dt>
           <dd>
-            {values[0]}–{values[n - 1]}
+            {formatMeasure(values[0])}–{formatMeasure(values[n - 1])}
           </dd>
         </div>
         <div>
           <dt>Mean</dt>
-          <dd>
-            {Number((values.reduce((a, b) => a + b, 0) / n).toPrecision(5))}
-          </dd>
+          <dd>{formatMeasure(mean)}</dd>
         </div>
         <div>
           <dt>Median</dt>
-          <dd>
-            {(values[Math.floor((n - 1) / 2)] + values[Math.floor(n / 2)]) / 2}
-          </dd>
+          <dd>{formatMeasure(median)}</dd>
         </div>
       </dl>
-      {n > 1 && n <= 80 ? (
-        <>
-          <div className="catalog-toolbar">
-            <label className="sort-select">
-              Horizontal axis
-              <select
-                value={active?.[0] || "experiment"}
-                onChange={(e) => setAxis(e.target.value)}
-              >
-                <option value="experiment">Recorded observation</option>
-                {available.map(([key, title]) => (
-                  <option key={key} value={key}>
-                    {title}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className="plot" ref={figure}>
-            <ResponsiveContainer width="100%" height="100%">
-              {active ? (
-                timeSeries ? (
-                  <LineChart data={paired}>
-                    {axes}
-                    <Line dataKey="value" type="linear" stroke="#ff8738" dot />
-                  </LineChart>
-                ) : (
-                  <ScatterChart>
-                    {axes}
-                    <Scatter data={paired} fill="#ff8738" />
-                  </ScatterChart>
-                )
-              ) : (
-                <BarChart data={points}>
-                  <CartesianGrid vertical={false} stroke="#344357" />
-                  <XAxis dataKey="name" hide={n > 6} tick={chartTick} />
-                  <YAxis width={narrow ? 48 : 64} tick={chartTick} />
-                  <Tooltip contentStyle={chartTip} />
-                  <Bar dataKey="value" fill="#ff8738" unit={" " + unit}>
-                    {points.some((p) => p.uncertainty != null) && (
-                      <ErrorBar dataKey="uncertainty" stroke="#ffc76b" />
-                    )}
-                  </Bar>
-                  {points.length > 12 && (
-                    <Brush dataKey="name" height={narrow ? 28 : 22} />
-                  )}
-                </BarChart>
-              )}
-            </ResponsiveContainer>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              const svg = figure.current?.querySelector("svg.recharts-surface");
-              if (svg) {
-                const clone = svg.cloneNode(true) as SVGElement;
-                clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-                download(
-                  "ignis-measurements.svg",
-                  new XMLSerializer().serializeToString(clone),
-                  "image/svg+xml",
-                );
-              }
-            }}
+      <div className="catalog-toolbar">
+        <label className="sort-select">
+          Horizontal axis
+          <select
+            value={active?.[0] || "experiment"}
+            onChange={(e) => setAxis(e.target.value)}
           >
-            Download chart
-          </button>
-        </>
+            <option value="experiment">Recorded observation</option>
+            {available.map(([key, title]) => (
+              <option key={key} value={key}>
+                {title}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      {active && !paired.length ? (
+        <p>No observations include that horizontal measurement.</p>
       ) : (
+        <div
+          className={
+            "plot" +
+            (angled ? " plot-angled" : "") +
+            (dense ? " plot-dense" : "")
+          }
+          ref={figure}
+        >
+          <ResponsiveContainer width="100%" height="100%">
+            {active ? (
+              timeSeries ? (
+                <LineChart
+                  data={paired}
+                  margin={{ top: 8, right: 16, left: 16, bottom: 16 }}
+                >
+                  <CartesianGrid stroke="#344357" />
+                  <XAxis
+                    type="number"
+                    dataKey="x"
+                    domain={["dataMin", "dataMax"]}
+                    tick={chartTick}
+                    tickFormatter={(value) => formatMeasure(value)}
+                    height={36}
+                    label={{
+                      value: active[1],
+                      position: "insideBottom",
+                      offset: -4,
+                      ...axisLabel,
+                    }}
+                  />
+                  <YAxis dataKey="value" {...yAxis} />
+                  {tooltip}
+                  <Line dataKey="value" type="linear" stroke="#ff8738" dot />
+                  {brush}
+                </LineChart>
+              ) : (
+                <ScatterChart
+                  data={paired}
+                  margin={{ top: 8, right: 16, left: 16, bottom: 16 }}
+                >
+                  <CartesianGrid stroke="#344357" />
+                  <XAxis
+                    type="number"
+                    dataKey="x"
+                    domain={["dataMin", "dataMax"]}
+                    tick={chartTick}
+                    tickFormatter={(value) => formatMeasure(value)}
+                    height={36}
+                    label={{
+                      value: active[1],
+                      position: "insideBottom",
+                      offset: -4,
+                      ...axisLabel,
+                    }}
+                  />
+                  <YAxis dataKey="value" {...yAxis} />
+                  {tooltip}
+                  <Scatter data={paired} fill="#ff8738" />
+                  {brush}
+                </ScatterChart>
+              )
+            ) : (
+              <BarChart
+                data={points}
+                margin={{ top: 8, right: 12, left: 16, bottom: angled ? 28 : 12 }}
+              >
+                <CartesianGrid vertical={false} stroke="#344357" />
+                <XAxis
+                  dataKey="name"
+                  interval={categoryInterval(n, narrow)}
+                  angle={angled ? -32 : 0}
+                  textAnchor={angled ? "end" : "middle"}
+                  height={angled ? 72 : 40}
+                  tick={chartTick}
+                  label={{
+                    value: "Recorded observation",
+                    position: "insideBottom",
+                    offset: angled ? -2 : -4,
+                    ...axisLabel,
+                  }}
+                />
+                <YAxis {...yAxis} />
+                {tooltip}
+                <Bar dataKey="value" fill="#ff8738">
+                  {points.some((p) => p.uncertainty != null) && (
+                    <ErrorBar dataKey="uncertainty" stroke="#ffc76b" />
+                  )}
+                </Bar>
+                {brush}
+              </BarChart>
+            )}
+          </ResponsiveContainer>
+        </div>
+      )}
+      {n === 1 && <p className="muted">One observation is available.</p>}
+      {dense && plotted > 0 && (
         <p className="muted">
-          {n === 1
-            ? "One observation is available."
-            : "Use the table or CSV to inspect this many observations."}
+          {visible} of {plotted} observations in view. Drag the range under
+          the chart to zoom.
         </p>
       )}
+      <button
+        type="button"
+        onClick={() => {
+          const svg = figure.current?.querySelector("svg.recharts-surface");
+          if (svg) {
+            const clone = svg.cloneNode(true) as SVGElement;
+            clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+            download(
+              "ignis-measurements.svg",
+              new XMLSerializer().serializeToString(clone),
+              "image/svg+xml",
+            );
+          }
+        }}
+      >
+        Download chart
+      </button>
     </section>
   );
 }
 export default function Analytics() {
   const { codes } = useSelection();
+  const widePicker = useMedia("(min-width: 981px)");
   const v = useVariables(codes);
   const [variable, setVariable] = useState("");
   const validCount = codes.length >= 2 && codes.length <= 25;
@@ -363,7 +509,7 @@ export default function Analytics() {
         </section>
         <section className="panel scope-panel" aria-labelledby="compare-runs">
           <h2 id="compare-runs">Experiments</h2>
-          <Picker startOpen />
+          <Picker startOpen={widePicker} />
         </section>
       </div>
       {currentResult && m.data && (
@@ -413,11 +559,19 @@ export default function Analytics() {
                         <td>
                           <RunLink code={String(r.experiment_code)} />
                         </td>
-                        <td>{r.value ?? "Not reported"}</td>
-                        <td>{r.uncertainty ?? "Not reported"}</td>
+                        <td className="num">
+                          {r.value == null || r.value === ""
+                            ? "Not reported"
+                            : formatMeasure(r.value)}
+                        </td>
+                        <td className="num">
+                          {r.uncertainty == null || r.uncertainty === ""
+                            ? "Not reported"
+                            : formatMeasure(r.uncertainty)}
+                        </td>
                         <td>{r.unit ?? "Not reported"}</td>
-                        <td>
-                          {r.filename ?? "Not reported"}{" "}
+                        <td className="file-name">
+                          {r.filename ?? "Not reported"}
                           {r.source_row != null ? " · " + r.source_row : ""}
                         </td>
                         <td>{r.verification_status ?? "Unverified"}</td>

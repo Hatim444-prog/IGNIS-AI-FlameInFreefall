@@ -2123,3 +2123,32 @@ td {
   .shell aside nav a, .drawer nav a { font-size: 11px; gap: 5px; padding-inline: 4px; }
   .shell aside nav a svg, .drawer nav a svg { width: 15px; flex-shrink: 0; }
 }
+
+
+/* Catalog statistics cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--line, rgba(255,255,255,.08));
+  border-radius: 12px;
+  background: var(--panel, rgba(255,255,255,.03));
+}
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent, #ff7a3d);
+}
+.stat-label {
+  font-size: .8rem;
+  opacity: .75;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}

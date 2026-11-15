@@ -7,12 +7,12 @@ import { Header, State, EvidenceCards } from "./common";
 import {
   request,
   observation,
-  useExperiments,
+  useAllExperiments,
   visuals,
   uploadObservation,
 } from "./api";
 export function Media() {
-  const ex = useExperiments();
+  const ex = useAllExperiments();
   const [file, pick] = useState<File | null>(null),
     [preview, setPreview] = useState(""),
     [code, select] = useState(""),
@@ -126,7 +126,7 @@ export function Media() {
             onChange={(e) => select(e.target.value)}
           >
             <option value="">Unverified · no association</option>
-            {ex.data?.experiments.map((r) => (
+            {ex.data?.map((r) => (
               <option key={r.experiment_code}>{r.experiment_code}</option>
             ))}
           </select>

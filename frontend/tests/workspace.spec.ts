@@ -3,6 +3,9 @@ test("live explorer selects a run and opens a sourced comparison", async ({
   page,
 }) => {
   await page.goto("/experiments");
+  await page
+    .getByPlaceholder("Experiment code, investigation or fuel")
+    .fill("ZARM-144");
   const first = page.getByRole("checkbox").first();
   await first.check();
   await page.getByRole("link", { name: /Compare selected/ }).click();
@@ -13,6 +16,16 @@ test("live explorer selects a run and opens a sourced comparison", async ({
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export CSV" }).click();
   expect((await download).suggestedFilename()).toContain(".csv");
+});
+test("ZARM-FLARE experiments are reachable through the investigation filter", async ({
+  page,
+}) => {
+  await page.goto("/experiments?investigation=ZARM-FLARE");
+  await expect(page.getByText("31 matching records")).toBeVisible({
+    timeout: 45000,
+  });
+  await expect(page.getByText("ZARM-144").first()).toBeVisible();
+  await expect(page.getByText("External · ZARM").first()).toBeVisible();
 });
 test("live mission scenario shows provenance groups and limits", async ({
   page,
@@ -36,7 +49,7 @@ test("empty, unavailable and recovered database responses", async ({
       json:
         status === 503
           ? { detail: "Database unavailable" }
-          : { experiments: [] },
+          : { total: 0, limit: 12, offset: 0, experiments: [] },
     }),
   );
   await page.goto("/experiments");

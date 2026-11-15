@@ -13,10 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { State, RunLink } from "./common";
-import {
-  useExperiments,
-  origin,
-} from "./api";
+import { useAllExperiments } from "./api";
 
 const workflows = [
   {
@@ -61,7 +58,8 @@ function FlameComparison() {
 }
 
 export default function Overview() {
-  const q = useExperiments();
+  const q = useAllExperiments();
+  const experiments = q.data ?? [];
   return (
     <div className="dashboard">
       <section className="mission-hero"><LiveFire />
@@ -118,7 +116,7 @@ export default function Overview() {
             </Link>
           </div>
           <State query={q} />
-          {q.data && !q.data.experiments.length && (
+          {q.data && !experiments.length && (
             <div className="dashboard-empty">
               <FlaskConical size={28} />
               <p>No experiments indexed yet.</p>
@@ -127,7 +125,7 @@ export default function Overview() {
               </Link>
             </div>
           )}
-          {!!q.data?.experiments.length && (
+          {!!experiments.length && (
             <div className="table">
               <table>
                 <thead>
@@ -139,7 +137,7 @@ export default function Overview() {
                   </tr>
                 </thead>
                 <tbody>
-                  {q.data.experiments.slice(0, 3).map((e) => (
+                  {experiments.slice(0, 3).map((e) => (
                     <tr key={e.investigation_code + e.experiment_code}>
                       <td>
                         <div className="experiment-identity">
@@ -167,9 +165,9 @@ export default function Overview() {
                       </td>
                       <td>
                         <span className="origin-pill">
-                          {origin(e.experiment_code) === "External · ZARM"
+                          {e.investigation_code.startsWith("ZARM")
                             ? "ZARM"
-                            : "Unverified"}
+                            : e.investigation_code}
                         </span>
                       </td>
                     </tr>

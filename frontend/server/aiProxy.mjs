@@ -2,6 +2,21 @@ import contract from "../ignis_openapi.json" with { type: "json" };
 
 const routes = contract.paths;
 
+/** Match concrete paths against OpenAPI templates like /ai/data/experiments/{code}. */
+function matchRoute(pathname, method) {
+  for (const [routePath, ops] of Object.entries(routes)) {
+    if (!ops || typeof ops !== "object") continue;
+    const routeSegs = routePath.split("/").filter(Boolean);
+    const pathSegs = pathname.split("/").filter(Boolean);
+    if (routeSegs.length !== pathSegs.length) continue;
+    const matches = routeSegs.every(
+      (seg, i) => seg.startsWith("{") || seg === pathSegs[i],
+    );
+    if (matches && Object.hasOwn(ops, method)) return true;
+  }
+  return false;
+}
+
 /**
  * @param {import("node:http").IncomingMessage} req
  * @param {import("node:http").ServerResponse} res
@@ -15,10 +30,7 @@ export async function handleAiProxy(req, res, options) {
 
   const path = url.pathname;
   const method = (req.method || "GET").toLowerCase();
-  if (
-    !Object.hasOwn(routes, path) ||
-    !Object.hasOwn(routes[path], method)
-  ) {
+  if (!matchRoute(path, method)) {
     res.statusCode = 404;
     res.setHeader("Content-Type", "application/json");
     res.end(JSON.stringify({ detail: "Unknown API route or method" }));

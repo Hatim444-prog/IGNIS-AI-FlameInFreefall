@@ -1,7 +1,7 @@
 import { usePreference } from "./preferences";
 import { Link } from "react-router-dom";
 import { createContext, useContext, useMemo, type ReactNode } from "react";
-import { useExperiments, label, origin, type Evidence } from "./api";
+import { useAllExperiments, label, origin, type Evidence } from "./api";
 export function Header({
   section,
   title,
@@ -64,14 +64,14 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
 // oxlint-disable-next-line react/only-export-components
 export const useSelection = () => useContext(Selection);
 export function Picker() {
-  const q = useExperiments();
+  const q = useAllExperiments();
   const { codes, set } = useSelection();
   return (
     <details className="picker">
       <summary>Experiment selection · {codes.length}</summary>
       <State query={q} />
       <div className="checks">
-        {q.data?.experiments.map((e) => (
+        {q.data?.map((e) => (
           <label key={e.experiment_code}>
             <input
               type="checkbox"
@@ -130,7 +130,13 @@ export function EvidenceCards({ rows }: { rows: Evidence[] }) {
           {r.experiment_code && (
             <p>
               <RunLink code={String(r.experiment_code)} /> ·{" "}
-              {origin(r.experiment_code)}
+              {origin({
+                investigation_code:
+                  typeof r.investigation_code === "string"
+                    ? r.investigation_code
+                    : null,
+                experiment_code: String(r.experiment_code),
+              })}
             </p>
           )}
           <Fields row={r} />

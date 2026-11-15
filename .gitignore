@@ -37,3 +37,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# NASA raw/extracted datasets (voluminous)
+ai-service/data/raw/
+ai-service/data/extracted/

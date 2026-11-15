@@ -118,6 +118,349 @@ def get_experiments(prefix: str = "ZARM-", limit: int = 30) -> list[dict]:
         ).fetchall()
 
 
+def _completeness_score(alias: str = "e") -> str:
+    """Score de complétude : colonnes conditions renseignées
+    + nombre de mesures réellement stockées pour l'expérience.
+    Aucun NULL n'est transformé en 0."""
+    return f"""
+        (SELECT COUNT(*) FROM measurements m
+          WHERE m.experiment_id = {alias}.id)
+        + ({alias}.fuel_material IS NOT NULL)::int
+        + ({alias}.oxygen_percent IS NOT NULL)::int
+        + ({alias}.pressure_pa IS NOT NULL)::int
+        + ({alias}.airflow_m_s IS NOT NULL)::int
+        + ({alias}.gravity_condition IS NOT NULL)::int
+        + ({alias}.experiment_date IS NOT NULL)::int
+    """
+
+
+_EXPERIMENT_COLUMNS = """
+    e.id AS experiment_id, e.experiment_code,
+    i.code AS investigation_code, i.title AS investigation_title,
+    e.fuel_material, e.oxygen_percent, e.pressure_pa, e.airflow_m_s,
+    e.gravity_condition, e.experiment_date,
+    {score} AS completeness_score
+"""
+
+
+def _experiment_where(
+    *,
+    dataset_prefix: str = "",
+    investigation: str = "",
+    q: str = "",
+    fuel_material: str = "",
+    gravity_condition: str = "",
+    oxygen_min: Optional[float] = None,
+    oxygen_max: Optional[float] = None,
+    pressure_min: Optional[float] = None,
+    pressure_max: Optional[float] = None,
+    airflow_min: Optional[float] = None,
+    airflow_max: Optional[float] = None,
+    airflow_availability: str = "all",
+) -> tuple[str, list]:
+    clauses, params = [], []
+    if dataset_prefix:
+        clauses.append("e.experiment_code LIKE %s")
+        params.append(dataset_prefix + "%")
+    if investigation:
+        clauses.append("i.code = %s")
+        params.append(investigation)
+    if q:
+        clauses.append(
+            "(e.experiment_code ILIKE %s OR i.code ILIKE %s "
+            "OR i.title ILIKE %s OR e.fuel_material ILIKE %s)"
+        )
+        like = f"%{q}%"
+        params.extend([like, like, like, like])
+    if fuel_material:
+        clauses.append("e.fuel_material = %s")
+        params.append(fuel_material)
+    if gravity_condition:
+        clauses.append("e.gravity_condition = %s")
+        params.append(gravity_condition)
+    for column, lo, hi in (
+        ("oxygen_percent", oxygen_min, oxygen_max),
+        ("pressure_pa", pressure_min, pressure_max),
+        ("airflow_m_s", airflow_min, airflow_max),
+    ):
+        if lo is not None:
+            clauses.append(f"e.{column} >= %s")
+            params.append(lo)
+        if hi is not None:
+            clauses.append(f"e.{column} <= %s")
+            params.append(hi)
+    if airflow_availability == "reported":
+        clauses.append("e.airflow_m_s IS NOT NULL")
+    elif airflow_availability == "not_reported":
+        clauses.append("e.airflow_m_s IS NULL")
+    where = ("WHERE " + " AND ".join(clauses)) if clauses else ""
+    return where, params
+
+
+def list_experiments(
+    *,
+    dataset_prefix: str = "",
+    investigation: str = "",
+    q: str = "",
+    fuel_material: str = "",
+    gravity_condition: str = "",
+    oxygen_min: Optional[float] = None,
+    oxygen_max: Optional[float] = None,
+    pressure_min: Optional[float] = None,
+    pressure_max: Optional[float] = None,
+    airflow_min: Optional[float] = None,
+    airflow_max: Optional[float] = None,
+    airflow_availability: str = "all",
+    sort: str = "airflow_first",
+    limit: int = 25,
+    offset: int = 0,
+    curated: bool = False,
+    curated_size: int = 150,
+    protected_investigation: str = "ZARM-FLARE",
+) -> dict:
+    where, params = _experiment_where(
+        dataset_prefix=dataset_prefix,
+        investigation=investigation,
+        q=q,
+        fuel_material=fuel_material,
+        gravity_condition=gravity_condition,
+        oxygen_min=oxygen_min,
+        oxygen_max=oxygen_max,
+        pressure_min=pressure_min,
+        pressure_max=pressure_max,
+        airflow_min=airflow_min,
+        airflow_max=airflow_max,
+        airflow_availability=airflow_availability,
+    )
+
+    curated_params: list = []
+    if curated:
+        # Top-N par score de complétude. Toutes les expériences de
+        # l'investigation protégée sont conservées ; le reste du
+        # quota est attribué aux scores les plus élevés.
+        with connect_db() as conn:
+            protected_count = conn.execute(
+                """
+                SELECT COUNT(*)::int AS n
+                FROM experiments e
+                JOIN investigations i ON i.id = e.investigation_id
+                WHERE i.code = %s
+                """,
+                (protected_investigation,),
+            ).fetchone()["n"]
+        remaining = max(curated_size - protected_count, 0)
+
+        branches = [
+            """
+            SELECT e2.id
+            FROM experiments e2
+            JOIN investigations i2 ON i2.id = e2.investigation_id
+            WHERE i2.code = %s
+            """
+        ]
+        curated_params.append(protected_investigation)
+
+        if remaining > 0:
+            # Répartition proportionnelle du quota entre les
+            # investigations non protégées (méthode du plus fort
+            # reste), puis top-N par score de complétude absolu
+            # DANS chaque investigation. Garantit que chaque
+            # investigation représentée dans Neon apparaît dans
+            # la sélection, aux proportions de son catalogue.
+            with connect_db() as conn:
+                inv_rows = conn.execute(
+                    """
+                    SELECT i.code AS inv, COUNT(*)::int AS n
+                    FROM experiments e
+                    JOIN investigations i ON i.id = e.investigation_id
+                    WHERE i.code <> %s
+                    GROUP BY i.code
+                    ORDER BY i.code
+                    """,
+                    (protected_investigation,),
+                ).fetchall()
+
+            inv_names = [r["inv"] for r in inv_rows]
+            inv_counts = {r["inv"]: r["n"] for r in inv_rows}
+            total_np = sum(inv_counts.values())
+
+            quotas: dict[str, int] = {}
+            if total_np > 0:
+                raw = {
+                    inv: remaining * inv_counts[inv] / total_np
+                    for inv in inv_names
+                }
+                base = {inv: int(raw[inv]) for inv in inv_names}
+                left = remaining - sum(base.values())
+                by_frac = sorted(
+                    inv_names,
+                    key=lambda inv: (
+                        -(raw[inv] - base[inv]), inv
+                    ),
+                )
+                for inv in by_frac[:left]:
+                    base[inv] += 1
+                quotas = base
+
+            for inv in inv_names:
+                quota = quotas.get(inv, 0)
+                if quota <= 0:
+                    continue
+                branches.append(
+                    f"""
+                    SELECT ranked.id FROM (
+                        SELECT e3.id,
+                               {_completeness_score("e3")} AS score
+                        FROM experiments e3
+                        JOIN investigations i3
+                            ON i3.id = e3.investigation_id
+                        WHERE i3.code = %s
+                        ORDER BY score DESC, e3.experiment_code ASC,
+                                 e3.id ASC
+                        LIMIT %s
+                    ) ranked
+                    """
+                )
+                curated_params.extend([inv, quota])
+        clause = "e.id IN (" + " UNION ".join(branches) + ")"
+        where = (where + " AND " + clause) if where else (
+            "WHERE " + clause
+        )
+        params = [*params, *curated_params]
+
+    if sort in ("asc", "code_asc"):
+        order_by = "e.experiment_code ASC, e.id ASC"
+    elif sort in ("desc", "code_desc"):
+        order_by = "e.experiment_code DESC, e.id DESC"
+    elif sort == "date_desc":
+        order_by = (
+            "e.experiment_date DESC NULLS LAST, "
+            "e.experiment_code ASC, e.id ASC"
+        )
+    else:
+        # airflow_first : valeurs réelles d'abord (0 inclus),
+        # puis code croissant, tri stable sur l'ensemble filtré.
+        order_by = (
+            "CASE WHEN e.airflow_m_s IS NULL THEN 1 ELSE 0 END ASC, "
+            "e.experiment_code ASC, e.id ASC"
+        )
+    with connect_db() as conn:
+        total = conn.execute(
+            f"""
+            SELECT COUNT(*)::int AS total
+            FROM experiments e
+            JOIN investigations i ON i.id = e.investigation_id
+            {where}
+            """,
+            params,
+        ).fetchone()["total"]
+        rows = conn.execute(
+            f"""
+            SELECT {_EXPERIMENT_COLUMNS.format(score=_completeness_score("e"))}
+            FROM experiments e
+            JOIN investigations i ON i.id = e.investigation_id
+            {where}
+            ORDER BY {order_by}
+            LIMIT %s OFFSET %s
+            """,
+            (*params, limit, offset),
+        ).fetchall()
+    return {"total": total, "limit": limit, "offset": offset, "experiments": rows}
+
+
+def get_experiment_detail(code: str, investigation: str = "") -> Optional[dict]:
+    """Single experiment plus every measurement with its source provenance."""
+    params: list = [code]
+    extra = ""
+    if investigation:
+        extra = " AND i.code = %s"
+        params.append(investigation)
+    with connect_db() as conn:
+        experiment = conn.execute(
+            f"""
+            SELECT {_EXPERIMENT_COLUMNS.format(score=_completeness_score("e"))},
+                   e.fuel_phase, e.research_focus, e.flow_direction,
+                   e.sample_thickness_mm, e.gaps_sequence, e.filler_material
+            FROM experiments e
+            JOIN investigations i ON i.id = e.investigation_id
+            WHERE e.experiment_code = %s{extra}
+            ORDER BY i.code
+            LIMIT 1
+            """,
+            params,
+        ).fetchone()
+        if experiment is None:
+            return None
+        measurements = conn.execute(
+            """
+            SELECT m.variable_name, m.value, m.text_value, m.unit,
+                   m.qualifier, m.uncertainty,
+                   m.source_row, m.page_number, m.timestamp_s,
+                   s.filename, s.file_type, s.source_url, s.local_path,
+                   s.sha256, s.verification_status
+            FROM measurements m
+            JOIN sources s ON s.id = m.source_id
+            WHERE m.experiment_id = %s
+            ORDER BY m.variable_name, m.source_row NULLS LAST, m.id
+            """,
+            (experiment["experiment_id"],),
+        ).fetchall()
+    return {"experiment": experiment, "measurements": measurements}
+
+
+def get_catalog_stats() -> dict:
+    """Dashboard counters computed from the database, never hard-coded."""
+    with connect_db() as conn:
+        investigations = conn.execute(
+            """
+            SELECT i.code, i.title,
+                   COUNT(DISTINCT e.id)::int AS experiment_count,
+                   COUNT(m.id)::int AS measurement_count
+            FROM investigations i
+            LEFT JOIN experiments e ON e.investigation_id = i.id
+            LEFT JOIN measurements m ON m.experiment_id = e.id
+            GROUP BY i.id, i.code, i.title
+            ORDER BY i.code
+            """
+        ).fetchall()
+        totals = conn.execute(
+            """
+            SELECT
+                (SELECT COUNT(*)::int FROM experiments) AS experiments,
+                (SELECT COUNT(*)::int FROM measurements) AS measurements,
+                (SELECT COUNT(*)::int FROM sources) AS sources,
+                (SELECT COUNT(*)::int FROM sources
+                  WHERE verification_status = 'verified') AS verified_sources
+            """
+        ).fetchone()
+    return {"investigations": investigations, "totals": totals}
+
+
+def get_experiment_facets() -> dict:
+    """Distinct filterable values for the experiments explorer."""
+    with connect_db() as conn:
+        def distinct(column: str) -> list[str]:
+            rows = conn.execute(
+                f"""
+                SELECT DISTINCT {column} AS value
+                FROM experiments
+                WHERE {column} IS NOT NULL AND {column} <> ''
+                ORDER BY {column}
+                """
+            ).fetchall()
+            return [r["value"] for r in rows]
+
+        return {
+            "investigations": conn.execute(
+                """
+                SELECT code, title FROM investigations ORDER BY code
+                """
+            ).fetchall(),
+            "fuel_material": distinct("fuel_material"),
+            "gravity_condition": distinct("gravity_condition"),
+        }
+
+
 def get_numeric_rows(
     prefix: str, variable: str, codes: list[str], max_experiments: int
 ) -> list[dict]:
@@ -201,12 +544,81 @@ def build_hybrid_router(search_documents: Callable) -> APIRouter:
             raise HTTPException(503, "Scientific database unavailable") from exc
 
     @router.get("/data/experiments")
-    def api_experiments(dataset_prefix: str = "ZARM-", limit: int = 30):
+    def api_experiments(
+        dataset_prefix: str = "",
+        investigation: str = "",
+        q: str = "",
+        fuel_material: str = "",
+        gravity_condition: str = "",
+        oxygen_min: Optional[float] = None,
+        oxygen_max: Optional[float] = None,
+        pressure_min: Optional[float] = None,
+        pressure_max: Optional[float] = None,
+        airflow_min: Optional[float] = None,
+        airflow_max: Optional[float] = None,
+        airflow_availability: str = "all",
+        sort: str = "airflow_first",
+        limit: int = 25,
+        offset: int = 0,
+        curated: bool = False,
+        curated_size: int = 150,
+    ):
         if limit < 1 or limit > 100:
             raise HTTPException(422, "limit must be between 1 and 100")
+        if offset < 0:
+            raise HTTPException(422, "offset must be >= 0")
+        if not 1 <= curated_size <= 1000:
+            raise HTTPException(422, "curated_size must be between 1 and 1000")
+        if airflow_availability not in ("all", "reported", "not_reported"):
+            raise HTTPException(
+                422,
+                "airflow_availability must be 'all', 'reported' "
+                "or 'not_reported'",
+            )
         try:
-            return {"dataset_prefix": dataset_prefix,
-                    "experiments": json_safe(get_experiments(dataset_prefix, limit))}
+            return json_safe(list_experiments(
+                dataset_prefix=dataset_prefix,
+                investigation=investigation,
+                q=q,
+                fuel_material=fuel_material,
+                gravity_condition=gravity_condition,
+                oxygen_min=oxygen_min,
+                oxygen_max=oxygen_max,
+                pressure_min=pressure_min,
+                pressure_max=pressure_max,
+                airflow_min=airflow_min,
+                airflow_max=airflow_max,
+                airflow_availability=airflow_availability,
+                sort=sort,
+                limit=limit,
+                offset=offset,
+                curated=curated,
+                curated_size=curated_size,
+            ))
+        except psycopg.Error as exc:
+            raise HTTPException(503, "Scientific database unavailable") from exc
+
+    @router.get("/data/experiments/{code}")
+    def api_experiment_detail(code: str, investigation: str = ""):
+        try:
+            detail = get_experiment_detail(code, investigation)
+        except psycopg.Error as exc:
+            raise HTTPException(503, "Scientific database unavailable") from exc
+        if detail is None:
+            raise HTTPException(404, f"No experiment found for code {code!r}")
+        return json_safe(detail)
+
+    @router.get("/data/stats")
+    def api_stats():
+        try:
+            return json_safe(get_catalog_stats())
+        except psycopg.Error as exc:
+            raise HTTPException(503, "Scientific database unavailable") from exc
+
+    @router.get("/data/facets")
+    def api_facets():
+        try:
+            return json_safe(get_experiment_facets())
         except psycopg.Error as exc:
             raise HTTPException(503, "Scientific database unavailable") from exc
 

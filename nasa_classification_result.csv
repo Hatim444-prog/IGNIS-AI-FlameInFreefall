@@ -1,0 +1,71 @@
+﻿filename,investigation,category,status
+19304Fiber1_ACME.zip,,raw_data,A_VERIFIER
+ACME Gas flow.zip,,raw_data,A_VERIFIER
+BASS_GMT188_SAMPLE_162_TESTB13 original videos.zip,PSI-26,raw_data,DEJA_PRESENT
+D337D04B.zip,,raw_data,A_VERIFIER
+LCTF087C.zip,,raw_data,A_VERIFIER
+SAFFIRE-III_F1C1_1200x920.zip,PSI-100,raw_data,COPIE
+SAFFIRE_II_F1C1-BIT_jpeg.zip,PSI-99,raw_data,DEJA_PRESENT
+SAFFIRE_III_S1C1_JPEG_Mapped_part4.zip,PSI-100,raw_data,COPIE
+ACMEFlowAndPressuresRawDataConversion.xlsx,,experimental_tables,A_VERIFIER
+ACMEFlowCalculator.xlsx,,experimental_tables,A_VERIFIER
+GasDataTables.xls,,experimental_tables,A_VERIFIER
+GasRateConversionsForScriptsAndGroundSoftware.xlsx,,experimental_tables,A_VERIFIER
+Inside gas mix calculator.xls,,experimental_tables,A_VERIFIER
+20247A1_mfcSetpoints.csv,,experimental_tables,A_VERIFIER
+BASS-II Test Matrix by PI Final.xlsx,PSI-25,experimental_tables,DEJA_PRESENT
+CFI_DataSummary_Spreadsheet_Jan2021.xlsx,PSI-39,experimental_tables,DEJA_PRESENT
+Fan calibration data.xlsx,,experimental_tables,A_VERIFIER
+GMT252run1testhkp with plots.xls,,experimental_tables,A_VERIFIER
+SAFFIRE-II_MergeResult-jpeg_v5_Final.xlsx,PSI-99,experimental_tables,DEJA_PRESENT
+D337D04B.txt,,raw_data,A_VERIFIER
+LCTF087C.txt,,raw_data,A_VERIFIER
+LCTF087C_LCTF_Wavelengths.txt,,raw_data,A_VERIFIER
+18078D1_TP.txt,,raw_data,A_VERIFIER
+19056A2.txt,,raw_data,A_VERIFIER
+19304A1.txt,,raw_data,A_VERIFIER
+FLEX-007_ColorCamData.txt,PSI-69,raw_data,DEJA_PRESENT
+FLEX-007_DropletData.txt,PSI-69,raw_data,DEJA_PRESENT
+BASS_GMT50_SAMPLE_147_TEST_B1.mp4,PSI-26,raw_data,DEJA_PRESENT
+ACME flow conversion 20200601.pdf,,science_documents,A_VERIFIER
+Hastings_HFC-D-302_manual.pdf,,science_documents,A_VERIFIER
+20120015928.pdf,,science_documents,A_VERIFIER
+76 preage Pyrell 29P.pptx,,science_documents,A_VERIFIER
+79 Postage 32T Teflon.pptx,,science_documents,A_VERIFIER
+ACME - Engineering Requirements Doc Rev K.pdf,,science_documents,A_VERIFIER
+ACME non-imaging data file description.pdf,,science_documents,A_VERIFIER
+ACME-BRE_Test_Summary.docx,PSI-20,science_documents,DEJA_PRESENT
+ACME-DOC-010_D.pdf,,science_documents,A_VERIFIER
+ASGSR BASS SIBAL talk Final.pdf,PSI-26,science_documents,DEJA_PRESENT
+BASS-2 Engineering Requirements.pptx,PSI-25,science_documents,DEJA_PRESENT
+BASS-II Summary Report.pdf,PSI-25,science_documents,DEJA_PRESENT
+BRE_final_report_20220201.pdf,PSI-20,science_documents,DEJA_PRESENT
+CFI Operational Requirements and Protocols.pdf,PSI-39,science_documents,COPIE
+CFI Science Final Report.pdf,PSI-39,science_documents,COPIE
+DAFT - Increment 13 Science Symposium_GAR1.ppt,PSI-47,science_documents,DEJA_PRESENT
+DAFT final report 6 24 08 as submitted.doc,PSI-47,science_documents,DEJA_PRESENT
+Dotson_umd_0117N_10980.pdf,,science_documents,A_VERIFIER
+E-FIELD Flames 30-day report Inc 55-56 20181115.pdf,PSI-22,science_documents,DEJA_PRESENT
+E-FIELD_Flames_SRD_20100402.pdf,PSI-22,science_documents,DEJA_PRESENT
+Ethylene assembled smoke hieght slide.  GMT 045 1503      11 26 2011.pptx,,science_documents,A_VERIFIER
+FLEX-1261_Summary_prelim.pdf,PSI-68,science_documents,DEJA_PRESENT
+FLEX-2 Hardware Presentation.ppt,PSI-68,science_documents,DEJA_PRESENT
+FLEX-2 SRD Final _ No Hypertext .pdf,PSI-68,science_documents,DEJA_PRESENT
+FLEX_EIRD_v4.pdf,,science_documents,A_VERIFIER
+GMT2014_174_BASS_S196M_TPP21b_ProofSheet.pdf,PSI-26,science_documents,DEJA_PRESENT
+ISS Denver 2013-BASS.pdf,PSI-26,science_documents,DEJA_PRESENT
+s-Flame 30-day report Inc 63 20201216.pdf,PSI-23,science_documents,DEJA_PRESENT
+S1101MFB0001_-ACME_Drawing_Tree.pdf,,science_documents,A_VERIFIER
+SAFFIRE-I Image Directory Nomenclature.pdf,PSI-98,science_documents,DEJA_PRESENT
+SAFFIRE-II_Image_Directory_Nomenclature_v3.0.pdf,PSI-99,science_documents,DEJA_PRESENT
+SAFFIRE-III Image Directory Nomenclature_v3.0.pdf,PSI-100,science_documents,COPIE
+SAME EIRD Rev 2.00 02-25-05 HIgh Q.pdf,PSI-102,science_documents,DEJA_PRESENT
+SAME Final Science report  03 18 10 with papers attached.pdf,PSI-102,science_documents,DEJA_PRESENT
+SAME_Baseline Concept Description Document_001 Rev A.pdf,PSI-102,science_documents,DEJA_PRESENT
+SAME_Crew Interface Description_008 Rev A.pdf,PSI-102,science_documents,DEJA_PRESENT
+SLICE 4.001 SPICE Video Overlay Reset-MGUEMSGSLCEC001.pdf,,science_documents,A_VERIFIER
+SLICE IP-A SRDR.pdf,PSI-106,science_documents,DEJA_PRESENT
+SPICE  ops 2-13-09.ppt,PSI-107,science_documents,DEJA_PRESENT
+SPICE Phase III Flight Safety Data Package_May 2008.pdf,PSI-107,science_documents,DEJA_PRESENT
+SPICE SRD 8-23-07 with sigs.doc,PSI-107,science_documents,DEJA_PRESENT
+US National Meeting-070HE-0218-Final.docx,,science_documents,A_VERIFIER

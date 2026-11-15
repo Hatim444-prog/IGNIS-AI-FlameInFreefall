@@ -9,7 +9,6 @@ This module does not alter existing routes, models, or ingestion scripts.
 from __future__ import annotations
 
 import json
-import os
 from collections import Counter
 from pathlib import Path
 from statistics import mean
@@ -21,14 +20,12 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from db_config import connect_db as _connect_db
-from llm_client import InferenceError, chat as llm_chat
+from llm_client import InferenceError, active_model, chat as llm_chat, consume_retrieval_note
 
 # Existing project: C:\IGNIS_AI\ai-service\hybrid_api.py
 ROOT = Path(__file__).resolve().parent
 load_dotenv(ROOT.parent / ".env")
 load_dotenv(ROOT / ".env", override=False)
-
-TEXT_MODEL = os.getenv("IGNIS_TEXT_MODEL", "llama3.1:8b")
 
 
 def connect_db():
@@ -660,6 +657,8 @@ def build_hybrid_router(search_documents: Callable) -> APIRouter:
         # Reuse existing Stage 1 Nomic -> pgvector PDF retrieval without changing main.py.
         try:
             papers = search_documents(request.question, request.top_k_papers, request.document_names)
+        except HTTPException:
+            raise
         except Exception as exc:
             raise HTTPException(503, "PDF evidence retrieval unavailable") from exc
         papers = [dict(r) for r in papers]
@@ -713,6 +712,9 @@ def build_hybrid_router(search_documents: Callable) -> APIRouter:
             "Research assistant, not a flight-certified safety assessment.",
             "Numeric statistics use only rows available in the selected dataset.",
         ]
+        retrieval_note = consume_retrieval_note()
+        if retrieval_note:
+            warnings.append(retrieval_note)
         if request.dataset_prefix.startswith("ZARM"):
             warnings.append("Numerical data are from ZARM, not NASA PSI.")
         if not variable:
@@ -725,7 +727,7 @@ def build_hybrid_router(search_documents: Callable) -> APIRouter:
         return json_safe({
             "question": request.question,
             "answer": answer,
-            "model": TEXT_MODEL,
+            "model": active_model(),
             "numerical_variable": variable,
             "numerical_summary": summarize_numeric(rows),
             "measurements": rows[:30],

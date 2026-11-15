@@ -1,6 +1,7 @@
 
 from pathlib import Path
 import os
+import re
 
 from dotenv import load_dotenv
 from psycopg.rows import dict_row
@@ -17,11 +18,16 @@ from hybrid_api import build_hybrid_router
 from inference_context import config_from_env, get_inference_config
 from inference_middleware import InferenceMiddleware
 from llm_client import (
+    KEYWORD_RETRIEVAL_NOTE,
     InferenceError,
+    active_chat_backend,
+    active_model,
     chat as llm_chat,
+    consume_retrieval_note,
     diagnose_inference,
     embed_text,
     model_map,
+    set_retrieval_note,
 )
 
 
@@ -89,13 +95,78 @@ def get_connection():
 # RAG DOCUMENT SEARCH
 # ==========================================
 
-def search_documents(question, top_k=4, document_names=None):
+def _keyword_documents(question, top_k, document_names):
+    names = document_names or None
+    with get_connection() as conn:
+        with conn.cursor(row_factory=dict_row) as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    s.filename AS source,
+                    s.source_url, s.verification_status,
+                    d.page_number AS page,
+                    d.content AS text,
+                    ts_rank_cd(
+                        to_tsvector('english', d.content),
+                        websearch_to_tsquery('english', %s)
+                    ) AS score
+                FROM document_chunks d
+                JOIN sources s ON s.id = d.source_id
+                WHERE d.content IS NOT NULL
+                  AND to_tsvector('english', d.content)
+                      @@ websearch_to_tsquery('english', %s)
+                  AND (%s::text[] IS NULL OR s.filename = ANY(%s::text[]))
+                ORDER BY score DESC
+                LIMIT %s
+                """,
+                (question, question, names, names, top_k),
+            )
+            rows = cursor.fetchall()
+            if rows:
+                return rows
+            tokens = re.findall(r"[A-Za-z0-9]{4,}", question)[:5]
+            if not tokens:
+                return []
+            like = " OR ".join(["d.content ILIKE %s"] * len(tokens))
+            cursor.execute(
+                f"""
+                SELECT
+                    s.filename AS source,
+                    s.source_url, s.verification_status,
+                    d.page_number AS page,
+                    d.content AS text,
+                    0.2 AS score
+                FROM document_chunks d
+                JOIN sources s ON s.id = d.source_id
+                WHERE d.content IS NOT NULL
+                  AND ({like})
+                  AND (%s::text[] IS NULL OR s.filename = ANY(%s::text[]))
+                LIMIT %s
+                """,
+                (*[f"%{token}%" for token in tokens], names, names, top_k),
+            )
+            return cursor.fetchall()
 
-    # Step 1: Generate query embedding
+
+def search_documents(question, top_k=4, document_names=None):
+    set_retrieval_note(None)
+
+    # Step 1: Generate query embedding. The index is 768-d Nomic.
+    # A different embedding model cannot query it, so fall back to keywords.
     try:
         query_vector = embed_text(question, task="query")
-    except InferenceError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except InferenceError:
+        set_retrieval_note(KEYWORD_RETRIEVAL_NOTE)
+        try:
+            return _keyword_documents(question, top_k, document_names)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Document search is unavailable. The local embedding model is offline, "
+                    "and the scientific database could not be searched by keywords."
+                ),
+            ) from exc
 
     # Step 2: Search PostgreSQL
     with get_connection() as conn:
@@ -202,10 +273,14 @@ def ask(request: Question):
         top_k=4, document_names=request.document_names
     )
 
+    retrieval_note = consume_retrieval_note()
     if not results:
+        detail = "No indexed research passages found."
+        if retrieval_note:
+            detail = f"{detail} {retrieval_note}"
         raise HTTPException(
             status_code=404,
-            detail="No indexed research passages found."
+            detail=detail,
         )
 
     # Build scientific context
@@ -251,18 +326,14 @@ def ask(request: Question):
     except InferenceError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
-    cfg = config_from_env()
-    model_label = (
-        model_map(cfg)["nim"]["text"]
-        if cfg.chat_backend == "nim"
-        else LLM_MODEL
-    )
+    warnings = [retrieval_note] if retrieval_note else []
 
     return {
         "question": request.question,
         "answer": answer,
-        "model": model_label,
-        "inference_backend": cfg.chat_backend,
+        "model": active_model(),
+        "inference_backend": active_chat_backend(),
+        "warnings": warnings,
         "sources": [
             {
                 "reference": i,

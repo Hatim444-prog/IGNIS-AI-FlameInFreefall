@@ -12,7 +12,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
-import os
+import re
 from pathlib import Path
 from typing import Callable
 
@@ -24,7 +24,16 @@ from pydantic import BaseModel, Field
 from starlette.datastructures import Headers
 
 from db_config import connect_db as _connect_db
-from llm_client import InferenceError, chat as llm_chat, embed_text, vision_model
+from llm_client import (
+    KEYWORD_RETRIEVAL_NOTE,
+    InferenceError,
+    active_model,
+    chat as llm_chat,
+    consume_retrieval_note,
+    embed_text,
+    set_retrieval_note,
+    vision_model,
+)
 from vision_api import (
     MAX_IMAGE_BYTES, MAX_VIDEO_BYTES,
     _ask_vision, _validate_and_resize_image, analyze_video,
@@ -34,8 +43,6 @@ ROOT = Path(__file__).resolve().parent
 load_dotenv(ROOT.parent / ".env")
 load_dotenv(ROOT / ".env", override=False)
 MEDIA_DIR = ROOT / "data" / "visual"
-TEXT_MODEL = os.getenv("IGNIS_TEXT_MODEL", "llama3.1:8b")
-EMBED_MODEL = os.getenv("IGNIS_EMBED_MODEL", "nomic-embed-text")
 
 
 def connect_db():
@@ -140,8 +147,39 @@ def _save_observation(
     }
 
 
+def _keyword_visual(question: str, limit: int, experiment_codes: list[str] | None):
+    tokens = re.findall(r"[A-Za-z0-9]{4,}", question)[:5]
+    if not tokens:
+        return []
+    like = " OR ".join(["v.description ILIKE %s"] * len(tokens))
+    params: list = [f"%{token}%" for token in tokens]
+    clause = ""
+    if experiment_codes:
+        clause = "AND e.experiment_code = ANY(%s::text[])"
+        params.append(experiment_codes)
+    params.append(limit)
+    with connect_db() as conn:
+        return conn.execute(
+            f"""SELECT v.id AS observation_id, v.description, v.analysis_type,
+                       v.model_name, v.review_status,
+                       s.filename, s.source_url, s.verification_status,
+                       e.experiment_code,
+                       0.2 AS similarity
+                FROM visual_observations v
+                JOIN sources s ON s.id = v.source_id
+                LEFT JOIN experiments e ON e.id = v.experiment_id
+                WHERE v.description IS NOT NULL AND ({like}) {clause}
+                LIMIT %s""",
+            params,
+        ).fetchall()
+
+
 def find_visual_evidence(question: str, limit: int = 4, experiment_codes: list[str] | None = None):
-    vector = _embed(question, task="query")
+    try:
+        vector = embed_text(question, task="query")
+    except InferenceError:
+        set_retrieval_note(KEYWORD_RETRIEVAL_NOTE)
+        return _keyword_visual(question, limit, experiment_codes)
     with connect_db() as conn:
         if experiment_codes:
             clause = "AND e.experiment_code = ANY(%s::text[])"
@@ -310,7 +348,7 @@ def build_stage4_router(search_documents: Callable) -> APIRouter:
         return {
             "question": request.question,
             "answer": answer,
-            "model": TEXT_MODEL,
+            "model": active_model(),
             "paper_sources": [
                 {"citation": f"P{i}", "file": r["source"], "page": r["page"],
                  "excerpt": r["text"][:2500],
@@ -333,6 +371,7 @@ def build_stage4_router(search_documents: Callable) -> APIRouter:
             "limitations": [
                 "AI-generated visual descriptions are qualitative, not calibrated measurements.",
                 "Source provenance and experiment linkage require independent verification.",
+                *([note] if (note := consume_retrieval_note()) else []),
             ],
         }
 

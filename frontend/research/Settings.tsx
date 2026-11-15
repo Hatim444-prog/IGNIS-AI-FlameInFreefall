@@ -7,7 +7,7 @@ import { Header, State } from "./common";
 import { useHealth, useDatabase, request, useDocuments } from "./api";
 import { useState } from "react";
 export function Settings() {
-  const [provider, setProvider] = usePreference("ignis_infer_mode", "ollama");
+  const [provider, setProvider] = usePreference("ignis_infer_mode", "nim-mixed");
   const h = useHealth(),
     d = useDatabase();
   const m = useMutation({
@@ -66,6 +66,11 @@ export function Settings() {
             <option value="nim">NVIDIA chat and embeddings</option>
           </select>
         </label>
+        <p>
+          Answers use NVIDIA when a key is configured. Document search stays on
+          the local 768-d index, and falls back to keyword matching if that
+          embedding model is offline.
+        </p>
         {h.data && (
           <p>
             Configured local models · {h.data.text_model}, {h.data.vision_model}

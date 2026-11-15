@@ -16,7 +16,7 @@ import {
   Brush,
 } from "recharts";
 import { useMutation } from "@tanstack/react-query";
-import { Picker, Header, State, RunLink, useSelection } from "./common";
+import { Picker, Header, State, RunLink, Pending, useSelection } from "./common";
 import {
   comparison,
   useVariables,
@@ -25,6 +25,12 @@ import {
   label,
   type Evidence,
 } from "./api";
+const chartTick = { fill: "#a4acb9", fontSize: 12 };
+const chartTip = {
+  background: "var(--panel)",
+  border: "1px solid var(--border)",
+  color: "var(--fg)",
+};
 function numeric(value: unknown) {
   if (value == null || value === "") return null;
   const n = Number(value);
@@ -92,11 +98,18 @@ function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
         dataKey="x"
         name={active?.[1]}
         domain={["dataMin", "dataMax"]}
+        tick={chartTick}
       />
-      <YAxis dataKey="value" name="Measurement" unit={" " + unit} width={85} />
+      <YAxis
+        dataKey="value"
+        name="Measurement"
+        unit={" " + unit}
+        width={85}
+        tick={chartTick}
+      />
       <Tooltip
         cursor={{ strokeDasharray: "3 3" }}
-        contentStyle={{ background: "var(--panel)" }}
+        contentStyle={chartTip}
       />
     </>
   );
@@ -105,12 +118,28 @@ function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
   return (
     <section className="panel">
       <h2>Measurements ({unit})</h2>
-      <p>
-        n = {n} · Range {values[0]}–{values[n - 1]} · Mean{" "}
-        {Number((values.reduce((a, b) => a + b, 0) / n).toPrecision(5))} ·
-        Median{" "}
-        {(values[Math.floor((n - 1) / 2)] + values[Math.floor(n / 2)]) / 2}
-      </p>
+      <dl className="facts">
+        <div>
+          <dt>Observations</dt>
+          <dd>{n}</dd>
+        </div>
+        <div>
+          <dt>Range</dt>
+          <dd>
+            {values[0]}–{values[n - 1]}
+          </dd>
+        </div>
+        <div>
+          <dt>Mean</dt>
+          <dd>{Number((values.reduce((a, b) => a + b, 0) / n).toPrecision(5))}</dd>
+        </div>
+        <div>
+          <dt>Median</dt>
+          <dd>
+            {(values[Math.floor((n - 1) / 2)] + values[Math.floor(n / 2)]) / 2}
+          </dd>
+        </div>
+      </dl>
       {n > 1 && n <= 80 ? (
         <>
           <label>
@@ -133,28 +162,23 @@ function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
                 timeSeries ? (
                   <LineChart data={paired}>
                     {axes}
-                    <Line dataKey="value" type="linear" stroke="#32b5ad" dot />
+                    <Line dataKey="value" type="linear" stroke="#ff8738" dot />
                   </LineChart>
                 ) : (
                   <ScatterChart>
                     {axes}
-                    <Scatter data={paired} fill="#32b5ad" />
+                    <Scatter data={paired} fill="#ff8738" />
                   </ScatterChart>
                 )
               ) : (
                 <BarChart data={points}>
                   <CartesianGrid vertical={false} stroke="#344357" />
-                  <XAxis dataKey="name" hide={n > 6} />
-                  <YAxis width={70} />
-                  <Tooltip
-                    contentStyle={{
-                      background: "var(--panel)",
-                      color: "var(--fg)",
-                    }}
-                  />
-                  <Bar dataKey="value" fill="#32b5ad" unit={" " + unit}>
+                  <XAxis dataKey="name" hide={n > 6} tick={chartTick} />
+                  <YAxis width={70} tick={chartTick} />
+                  <Tooltip contentStyle={chartTip} />
+                  <Bar dataKey="value" fill="#ff8738" unit={" " + unit}>
                     {points.some((p) => p.uncertainty != null) && (
-                      <ErrorBar dataKey="uncertainty" stroke="#999" />
+                      <ErrorBar dataKey="uncertainty" stroke="#ffc76b" />
                     )}
                   </Bar>
                   {points.length > 12 && <Brush dataKey="name" height={18} />}
@@ -163,6 +187,7 @@ function Plot({ rows, unit }: { rows: Evidence[]; unit: string }) {
             </ResponsiveContainer>
           </div>
           <button
+            type="button"
             onClick={() => {
               const svg = figure.current?.querySelector("svg.recharts-surface");
               if (svg) {
@@ -202,49 +227,69 @@ export default function Analytics() {
     }) => post("/ai/data/compare", body, comparison),
   });
   const rows = m.data?.measurements || [];
+  const variableNames = [
+    ...new Set(v.data?.variables.map((x) => x.variable_name)),
+  ];
   return (
-    <>
-      <Header section="Scientific data" title="Analytics studio">
+    <div className="tool">
+      <Header section="Scientific data" title="Data comparison">
         Compare observations by variable and original unit. Each bar represents
         one recorded measurement.
       </Header>
-      <section className="panel">
-        <Picker />
-        <State query={v} />
-        <label>
-          Measured variable
-          <select
-            value={selected}
-            onChange={(e) => setVariable(e.target.value)}
-          >
-            {[...new Set(v.data?.variables.map((x) => x.variable_name))].map(
-              (s) => (
+      <div className="tool-split">
+        <section className="panel">
+          <h2>Comparison</h2>
+          <State query={v} />
+          <label>
+            Measured variable
+            <select
+              value={selected}
+              disabled={v.isPending || Boolean(v.error)}
+              onChange={(e) => setVariable(e.target.value)}
+            >
+              {variableNames.map((s) => (
                 <option value={s} key={s}>
                   {label(s)}
                 </option>
-              ),
-            )}
-          </select>
-        </label>
-        <div className="actions">
-          <button
-            className="primary"
-            disabled={
-              !selected || !codes.length || codes.length > 25 || m.isPending
-            }
-            onClick={() =>
-              m.mutate({
-                experiment_codes: codes,
-                variable_name: selected,
-                dataset_prefix: "",
-              })
-            }
-          >
-            {m.isPending ? "Comparing…" : "Compare measurements"}
-          </button>
-          <span>Select 1–25 experiments.</span>
-        </div>
-      </section>
+              ))}
+            </select>
+          </label>
+          <p className="field-hint">
+            <span>Select 1–25 experiments.</span>
+            <span>{codes.length} selected</span>
+          </p>
+          {codes.length > 25 && (
+            <p role="alert">Select at most 25 runs for one comparison.</p>
+          )}
+          {!codes.length && (
+            <p className="muted">
+              Choose experiments in the catalog, or pick them from the list.
+            </p>
+          )}
+          <div className="actions">
+            <button
+              className="primary"
+              disabled={
+                !selected || !codes.length || codes.length > 25 || m.isPending
+              }
+              onClick={() =>
+                m.mutate({
+                  experiment_codes: codes,
+                  variable_name: selected,
+                  dataset_prefix: "",
+                })
+              }
+            >
+              {m.isPending ? "Comparing…" : "Compare measurements"}
+            </button>
+          </div>
+          {m.isPending && <Pending tone="ai" label="Comparing…" />}
+        </section>
+        <section className="panel scope-panel" aria-labelledby="compare-runs">
+          <h2 id="compare-runs">Experiments</h2>
+          <Picker />
+        </section>
+      </div>
       {m.error && (
         <p role="alert" className="notice">
           {m.error.message}
@@ -252,10 +297,14 @@ export default function Analytics() {
       )}
       {m.data && (
         <>
-          <h2>
-            {label(m.variables.variable_name)} ·{" "}
-            {m.variables.experiment_codes.join(", ")}
-          </h2>
+          <section className="panel">
+            <h2>{label(m.variables.variable_name)}</h2>
+            <ul className="weight-list">
+              {m.variables.experiment_codes.map((code) => (
+                <li key={code}>{code}</li>
+              ))}
+            </ul>
+          </section>
           {!rows.length && <p>No matching measurements were returned.</p>}
           {Array.from(
             Map.groupBy(rows, (r) => String(r.unit ?? "")),
@@ -265,9 +314,11 @@ export default function Analytics() {
           )}
           {rows.length > 0 && (
             <section className="panel">
-              <div className="row">
+              <div className="result-heading">
                 <h2>Source measurements</h2>
-                <button onClick={() => csv(rows)}>Export CSV</button>
+                <button type="button" onClick={() => csv(rows)}>
+                  Export CSV
+                </button>
               </div>
               <div className="table">
                 <table>
@@ -309,6 +360,6 @@ export default function Analytics() {
           <p className="muted">{m.data.disclaimer}</p>
         </>
       )}
-    </>
+    </div>
   );
 }

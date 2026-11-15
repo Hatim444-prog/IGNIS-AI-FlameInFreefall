@@ -9,7 +9,7 @@ export function backendsForMode(mode) {
 }
 
 export function getInferenceMode() {
-  return localStorage.getItem(LS_MODE) || 'ollama'
+  return localStorage.getItem(LS_MODE) || 'nim-mixed'
 }
 
 export function setInferenceMode(mode) {

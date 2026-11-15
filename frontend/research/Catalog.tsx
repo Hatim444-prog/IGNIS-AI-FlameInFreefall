@@ -2,7 +2,7 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import DocumentCollection from "./DocumentCollection";
-import { Header, State, RunLink, Fields, useSelection } from "./common";
+import { Header, State, RunLink, Fields, Pending, useSelection } from "./common";
 import {
   useExperimentPage,
   useExperimentDetail,
@@ -23,6 +23,9 @@ const rangeFilters = {
   airflow_m_s: "Airflow (m/s)",
 } as const;
 
+function titleCase(value: string) {
+  return label(value).replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
 function num(value: string | undefined): number | undefined {
   if (value === undefined || value === "") return undefined;
   const n = Number(value);
@@ -87,7 +90,7 @@ export function Explorer() {
   const investigations = stats.data?.investigations ?? [];
 
   return (
-    <>
+    <div className="tool">
       <Header section="Research collection" title="Experiment explorer">
         {totals
           ? `${totals.experiments} experiments · ${investigations.length} investigations · ${totals.measurements} measurements`
@@ -115,73 +118,84 @@ export function Explorer() {
         </section>
       )}
 
-      <section className="panel">
+      <form
+        className="panel catalog-search"
+        role="search"
+        onSubmit={(e) => e.preventDefault()}
+      >
         <label>
-          Dataset
-          <select
-            value={filters.dataset || "curated"}
-            onChange={(e) => change("dataset", e.target.value)}
-          >
-            <option value="curated">Top 150 — most complete</option>
-            <option value="all">All experiments</option>
-          </select>
-        </label>
-        <label>
-          Search runs and documents
+          Search runs
           <input
             id="search"
             type="search"
-            placeholder="Experiment code, fuel or document name"
+            placeholder="Experiment code, investigation or fuel"
             value={filters.q || ""}
             onChange={(e) => change("q", e.target.value)}
           />
         </label>
-        <details className="picker">
-          <summary>Filter conditions</summary>
-          <div className="fields">
-            <label>
-              Investigation
+      </form>
+      <div className="tool-split catalog-split">
+        <section className="panel scope-panel">
+          <h2>Filters</h2>
+          {facets.isPending && !q.isPending && <Pending />}
+          {facets.error && facets.error.message !== q.error?.message && (
+            <State query={facets} />
+          )}
+          <label>
+            Dataset
+            <select
+              value={filters.dataset || "curated"}
+              onChange={(e) => change("dataset", e.target.value)}
+            >
+              <option value="curated">Top 150 — most complete</option>
+              <option value="all">All experiments</option>
+            </select>
+          </label>
+          <label>
+            Investigation
+            <select
+              value={filters.investigation || ""}
+              onChange={(e) => change("investigation", e.target.value)}
+            >
+              <option value="">All investigations</option>
+              {(facets.data?.investigations ?? []).map((inv) => (
+                <option key={inv.code} value={inv.code}>
+                  {inv.code} — {inv.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Airflow availability
+            <select
+              value={filters.airflow || ""}
+              onChange={(e) => change("airflow", e.target.value)}
+            >
+              <option value="">All experiments</option>
+              <option value="reported">Reported only</option>
+              <option value="not_reported">Not reported only</option>
+            </select>
+          </label>
+          {(["fuel_material", "gravity_condition"] as const).map((k) => (
+            <label key={k}>
+              {titleCase(k)}
               <select
-                value={filters.investigation || ""}
-                onChange={(e) => change("investigation", e.target.value)}
+                value={filters[k] || ""}
+                onChange={(e) => change(k, e.target.value)}
               >
-                <option value="">All investigations</option>
-                {(facets.data?.investigations ?? []).map((inv) => (
-                  <option key={inv.code} value={inv.code}>
-                    {inv.code} — {inv.title}
+                <option value="">All</option>
+                {(facets.data?.[k] ?? []).map((s) => (
+                  <option key={s} value={s}>
+                    {s}
                   </option>
                 ))}
               </select>
             </label>
-            <label>
-              Airflow availability
-              <select
-                value={filters.airflow || ""}
-                onChange={(e) => change("airflow", e.target.value)}
-              >
-                <option value="">All experiments</option>
-                <option value="reported">Reported only</option>
-                <option value="not_reported">Not reported only</option>
-              </select>
-            </label>
-            {(["fuel_material", "gravity_condition"] as const).map((k) => (
-              <label key={k}>
-                {label(k)}
-                <select
-                  value={filters[k] || ""}
-                  onChange={(e) => change(k, e.target.value)}
-                >
-                  <option value="">All</option>
-                  {(facets.data?.[k] ?? []).map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ))}
+          ))}
+          <fieldset>
+            <legend>Numeric ranges</legend>
             {Object.entries(rangeFilters).map(([k, title]) => (
-              <div key={k}>
+              <div className="range-pair" key={k}>
                 {["Min", "Max"].map((bound) => (
                   <label key={bound}>
                     {title} {bound}
@@ -194,8 +208,9 @@ export function Explorer() {
                 ))}
               </div>
             ))}
-          </div>
+          </fieldset>
           <button
+            type="button"
             onClick={() => {
               setSearchParams({});
               setPage(0);
@@ -203,11 +218,12 @@ export function Explorer() {
           >
             Reset filters
           </button>
-        </details>
+        </section>
+        <section className="panel results-panel">
         <State query={q} />
         {q.data && (
           <>
-            <div className="row">
+            <div className="catalog-toolbar">
               <strong>{total} matching records</strong>
               <label className="sort-select">
                 Sort
@@ -225,9 +241,9 @@ export function Explorer() {
               </label>
               <details className="picker columns-picker">
                 <summary>Columns</summary>
-                <div className="fields">
+                <div className="checks">
                   {OPTIONAL_COLUMNS.map((c) => (
-                    <label key={c.key}>
+                    <label key={c.key} className="inline">
                       <input
                         type="checkbox"
                         checked={!hiddenCols.has(c.key)}
@@ -246,6 +262,7 @@ export function Explorer() {
                 </div>
               </details>
             </div>
+            {q.data.experiments.length > 0 && (
             <div className="table">
               <table>
                 <thead>
@@ -314,31 +331,45 @@ export function Explorer() {
                 </tbody>
               </table>
             </div>
-            {!q.data.experiments.length && <p>No matching records.</p>}
+            )}
+            {!q.data.experiments.length && (
+              <p className="empty-result">No matching records.</p>
+            )}
+            {q.data.experiments.length > 0 && (
             <div className="actions">
-              <button disabled={page === 0} onClick={() => setPage(page - 1)}>
+              <button type="button" disabled={page === 0} onClick={() => setPage(page - 1)}>
                 Previous
               </button>
-              <span>
+              <span className="page-status">
                 Page {Math.min(page + 1, pageCount)} of {pageCount}
               </span>
               <button
+                type="button"
                 disabled={(page + 1) * PAGE_SIZE >= total}
                 onClick={() => setPage(page + 1)}
               >
                 Next
               </button>
             </div>
+            )}
           </>
         )}
-      </section>
-      <div className="actions">
-        <Link className="action" to="/analytics">
-          Compare selected ({codes.length})
-        </Link>
-        <Link to="/assistant">Ask about selection →</Link>
+        </section>
       </div>
-    </>
+      <div className="selection-bar">
+        <p>
+          {codes.length
+            ? codes.length + " selected for comparison"
+            : "Select runs to compare or ask about them."}
+        </p>
+        <div className="actions">
+          <Link className="action primary" to="/analytics">
+            Compare selected ({codes.length})
+          </Link>
+          <Link to="/assistant">Ask about selection →</Link>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -399,7 +430,7 @@ export function Detail({ code }: { code: string }) {
   const [copied, copy] = useState(false);
   const groups = e ? groupMeasurements(q.data?.measurements ?? []) : null;
   return (
-    <>
+    <div className="tool">
       <Header title={code} section="Experiment record">
         {e ? origin(e) : ""}
       </Header>
@@ -440,6 +471,9 @@ export function Detail({ code }: { code: string }) {
                 {["analytics", "assistant"].map((route) => (
                   <Link
                     key={route}
+                    className={
+                      "action" + (route === "analytics" ? " primary" : "")
+                    }
                     to={"/" + route}
                     onClick={() => set(Array.from(new Set([...codes, code])))}
                   >
@@ -514,7 +548,7 @@ export function Detail({ code }: { code: string }) {
         ) : (
           <p>No experiment returned for this code.</p>
         ))}
-    </>
+    </div>
   );
 }
 export function Investigations() {

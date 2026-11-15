@@ -74,7 +74,7 @@ async function request<T>(
       ...options,
       headers: {
         ...options.headers,
-        "x-ignis-mode": localStorage.getItem("ignis_infer_mode") || "ollama",
+        "x-ignis-mode": localStorage.getItem("ignis_infer_mode") || "nim-mixed",
       },
       signal,
       cache: "no-store",
@@ -142,7 +142,7 @@ export function uploadObservation(
     xhr.responseType = "json";
     xhr.setRequestHeader(
       "x-ignis-mode",
-      localStorage.getItem("ignis_infer_mode") || "ollama",
+      localStorage.getItem("ignis_infer_mode") || "nim-mixed",
     );
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable)

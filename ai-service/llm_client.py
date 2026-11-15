@@ -4,6 +4,7 @@ from __future__ import annotations
 import base64
 import logging
 import os
+from contextvars import ContextVar
 from typing import Any
 
 import httpx
@@ -28,6 +29,44 @@ EXPECTED_EMBED_DIM = int(os.getenv("IGNIS_EMBED_DIM", "768"))
 
 class InferenceError(RuntimeError):
     pass
+
+
+_used_model: ContextVar[str] = ContextVar("ignis_used_model", default="")
+_retrieval_note: ContextVar[str | None] = ContextVar(
+    "ignis_retrieval_note", default=None
+)
+
+KEYWORD_RETRIEVAL_NOTE = (
+    "These passages were matched by keywords because embedding search was unavailable. "
+    "The document index is 768-d nomic-embed-text. Start that local model to restore semantic search."
+)
+
+
+def set_retrieval_note(note: str | None) -> None:
+    _retrieval_note.set(note)
+
+
+def consume_retrieval_note() -> str | None:
+    note = _retrieval_note.get()
+    _retrieval_note.set(None)
+    return note
+
+
+def active_model() -> str:
+    used = _used_model.get()
+    if used:
+        return used
+    cfg = get_inference_config()
+    return NIM_TEXT if cfg.chat_backend == "nim" else OLLAMA_TEXT
+
+
+def active_chat_backend() -> str:
+    used = _used_model.get()
+    if used in (NIM_TEXT, NIM_VISION):
+        return "nim"
+    if used in (OLLAMA_TEXT, OLLAMA_VISION):
+        return "ollama"
+    return get_inference_config().chat_backend
 
 
 def model_map(cfg: InferenceConfig) -> dict[str, Any]:
@@ -142,11 +181,30 @@ def chat(
                 options=options,
             )
         except Exception as exc:
+            if cfg.nim_api_key:
+                logger.warning(
+                    "Ollama chat unavailable (%s); answering with NVIDIA NIM",
+                    type(exc).__name__,
+                )
+                nim_cfg = InferenceConfig(
+                    chat_backend="nim",
+                    embed_backend=cfg.embed_backend,
+                    nim_api_key=cfg.nim_api_key,
+                    nim_base_url=cfg.nim_base_url,
+                )
+                return chat(
+                    messages,
+                    temperature=temperature,
+                    num_ctx=num_ctx,
+                    cfg=nim_cfg,
+                )
             raise InferenceError(
                 f"Ollama chat failed ({type(exc).__name__}). "
                 f"Check that Ollama can load {model}."
             ) from exc
-        return result.message.content or ""
+        text = result.message.content or ""
+        _used_model.set(model)
+        return text
 
     payload: dict[str, Any] = {
         "model": model,
@@ -156,9 +214,11 @@ def chat(
     }
     data = _nim_post(cfg, "chat/completions", payload)
     try:
-        return data["choices"][0]["message"]["content"] or ""
+        text = data["choices"][0]["message"]["content"] or ""
     except (KeyError, IndexError, TypeError) as exc:
         raise InferenceError(f"Unexpected NIM chat response shape: {data}") from exc
+    _used_model.set(model)
+    return text
 
 
 def embed_text(
@@ -176,8 +236,9 @@ def embed_text(
             response = ollama.embed(model=OLLAMA_EMBED, input=prepared)
         except Exception as exc:
             raise InferenceError(
-                f"Ollama embed failed ({type(exc).__name__}). "
-                "Pull nomic-embed-text or switch embed backend to NIM in the UI."
+                "Local embedding model is offline (nomic-embed-text). "
+                "This library is a 768-d Nomic index, so NVIDIA embeddings cannot search it. "
+                "Start Ollama and pull nomic-embed-text to restore vector search."
             ) from exc
         vector = np.asarray(response.embeddings[0], dtype=np.float32)
     else:

@@ -49,10 +49,9 @@ export async function handleAiProxy(req, res, options) {
     headers.set("X-IGNIS-Chat-Backend", mode === "ollama" ? "ollama" : "nim");
     headers.set("X-IGNIS-Embed-Backend", mode === "nim" ? "nim" : "ollama");
     if (
-      mode !== "ollama" &&
-      (path.startsWith("/ai/ask") ||
-        path.startsWith("/ai/vision/") ||
-        path === "/ai/inference/test")
+      path.startsWith("/ai/ask") ||
+      path.startsWith("/ai/vision/") ||
+      path === "/ai/inference/test"
     ) {
       if (options.nimApiKey) {
         headers.set("Authorization", "Bearer " + options.nimApiKey);
